@@ -35,7 +35,7 @@ const STATUS_META = {
     },
     503: {
         title: 'Service temporarily unavailable',
-        description: 'IPHN is briefly unavailable for maintenance. Please try again shortly.',
+        description: 'BHN is briefly unavailable for maintenance. Please try again shortly.',
         icon: ServerCrash,
         tone: 'bg-rose-50 text-rose-700',
     },
@@ -64,11 +64,11 @@ export default function ErrorPage({ status = 500, message = null }) {
                                 <HeartPulse className="size-5" />
                             </span>
                             <span>
-                                <span className="block font-display text-sm font-extrabold tracking-tight text-ink-950">IPHN</span>
+                                <span className="block font-display text-sm font-extrabold tracking-tight text-ink-950">BHN</span>
                                 <span className="block text-[10px] font-medium tracking-wide text-ink-500 uppercase">Care coordination</span>
                             </span>
                         </Link>
-                        <span className="text-[11px] font-medium text-ink-400">{settings?.network_name ?? 'Inter-Provincial Hospital Network'}</span>
+                        <span className="text-[11px] font-medium text-ink-400">{settings?.network_name ?? 'Bukidnon Hospital Network'}</span>
                     </div>
                 </header>
 
@@ -100,8 +100,8 @@ export default function ErrorPage({ status = 500, message = null }) {
 
                             <div className="border-t border-ink-100 bg-ink-50/60 px-6 py-4 text-[10px] leading-4 text-ink-400 sm:px-10">
                                 If this keeps happening, contact{' '}
-                                <a href={`mailto:${settings?.support_email ?? 'support@iphn.test'}`} className="font-semibold text-brand-700 hover:underline">
-                                    {settings?.support_email ?? 'support@iphn.test'}
+                                <a href={`mailto:${settings?.support_email ?? 'support@bhn.test'}`} className="font-semibold text-brand-700 hover:underline">
+                                    {settings?.support_email ?? 'support@bhn.test'}
                                 </a>
                                 . Do not include patient information in support requests.
                             </div>

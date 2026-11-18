@@ -1,10 +1,12 @@
 # Implementation notes
 
-This document explains how IPHN's main rules are implemented and why certain design decisions were made.
+This document explains how BHN's main rules are implemented and why certain design decisions were made.
 
 ## 1. Scope and assumptions
 
-IPHN is a **coordination** system, not a clinical or billing system. It deliberately stores only the minimum patient-linked data required to route a referral:
+BHN is the **Bukidnon Hospital Network**, deployed for Bukidnon province only. The geography model keeps regions and provinces for reporting and administrative scopes, but `GeographySeeder` seeds only Region X (Northern Mindanao), the Province of Bukidnon, and its 22 LGUs (20 municipalities and the cities of Malaybalay and Valencia). The eight seeded hospitals are representative demonstration facilities pending official records.
+
+BHN is a **coordination** system, not a clinical or billing system. It deliberately stores only the minimum patient-linked data required to route a referral:
 
 - local patient reference and display name
 - age, sex, urgency
@@ -56,7 +58,7 @@ Referrals have both a numeric route key and a ULID `public_id`. The ULID is used
 
 ### Key isolation rules
 
-1. **Patient-linked records are membership-scoped.** A national administrator with a membership at Hospital A still sees only Hospital A's referrals/transfers, not every hospital in their geographic scope. This prevents aggregate roles from becoming back-door access to patient-linked data.
+1. **Patient-linked records are membership-scoped.** A network administrator with a membership at Hospital A still sees only Hospital A's referrals/transfers, not every hospital in their geographic scope. This prevents aggregate roles from becoming back-door access to patient-linked data.
 2. **Network administrators without memberships** receive `403` on `/referrals`, `/transfers`, and their API counterparts, but retain aggregate reports.
 3. **Individual bed records** require hospital membership or a scoped network role with `beds.view` (`BedPolicy@view`). The directory and aggregate availability remain browsable to hospital staff so they can identify a receiving facility.
 4. **Workflow actions** re-check hospital membership and role permission inside the service layer; controller policies are not the only guard.
@@ -64,7 +66,7 @@ Referrals have both a numeric route key and a ULID `public_id`. The ULID is used
 
 ### Network scopes
 
-Region/province administrators may manage users and hospital profiles inside `admin_scopes`. `applyGeographicScope()` turns those scopes into hospital query constraints. An empty scope for a network user means national scope (except for superadmin-only or patient-linked checks, which remain membership-based).
+Region/province administrators may manage users and hospital profiles inside `admin_scopes`. `applyGeographicScope()` turns those scopes into hospital query constraints. An empty scope for a network user means network scope (except for superadmin-only or patient-linked checks, which remain membership-based).
 
 ## 4. Bed availability and freshness
 
@@ -192,7 +194,7 @@ Notifications are read through the authenticated user's own relation, so one use
 
 ## 13. Testing
 
-`phpunit.xml` points tests at the MySQL `iphn_testing` schema because the PHP SQLite PDO driver is unavailable in this environment. `RefreshDatabase` rebuilds the schema per test; `tests/Concerns/BuildsNetwork.php` creates minimal geography/access/hospital/bed/referral fixtures without running the full demo seeders.
+`phpunit.xml` points tests at the MySQL `bhn_testing` schema because the PHP SQLite PDO driver is unavailable in this environment. `RefreshDatabase` rebuilds the schema per test; `tests/Concerns/BuildsNetwork.php` creates minimal geography/access/hospital/bed/referral fixtures without running the full demo seeders.
 
 Current coverage:
 
@@ -225,5 +227,5 @@ php artisan test
 - Reservation expiry relies on the scheduler; a queue-based job could provide tighter timing.
 - Notifications are in-app/database only; SMS/email delivery would need an additional channel.
 - Reports are operational and date-bounded; no data warehouse or long-term analytics store.
-- The frontend is a single JS bundle (~656 kB minified). Code-splitting by page is the next performance improvement.
+- The frontend uses page-level code splitting; the shared initial bundle is ~372 kB minified (~117 kB gzipped). Further vendor chunking is possible but not required for current usage.
 - Referral documents are stored on the local disk; production deployments with multiple app servers should switch to S3-compatible private storage.

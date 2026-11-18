@@ -414,7 +414,7 @@ export default function AdminHospitalIndex({ hospitals = [], municipalities = []
                                 value={form.data.name}
                                 onChange={(event) => form.setData('name', event.target.value)}
                                 error={form.errors.name}
-                                placeholder="e.g. Davao Regional Medical Center"
+                                placeholder="e.g. Bukidnon Provincial Medical Center"
                             />
                         </Field>
 
@@ -424,7 +424,7 @@ export default function AdminHospitalIndex({ hospitals = [], municipalities = []
                                 value={form.data.short_name}
                                 onChange={(event) => form.setData('short_name', event.target.value)}
                                 error={form.errors.short_name}
-                                placeholder="e.g. DRMC"
+                                placeholder="e.g. BPMC"
                             />
                         </Field>
 
@@ -434,7 +434,7 @@ export default function AdminHospitalIndex({ hospitals = [], municipalities = []
                                 value={form.data.hospital_code}
                                 onChange={(event) => form.setData('hospital_code', event.target.value.toUpperCase())}
                                 error={form.errors.hospital_code}
-                                placeholder="e.g. DRMC-1101"
+                                placeholder="e.g. BPMC-1013"
                                 disabled={!isNetworkUser && modal === 'edit'}
                             />
                         </Field>

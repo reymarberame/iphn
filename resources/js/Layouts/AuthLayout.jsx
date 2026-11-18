@@ -45,9 +45,9 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
                             <HeartPulse className="size-6 text-brand-300" />
                         </span>
                         <span>
-                            <span className="block font-display text-lg font-extrabold tracking-tight">IPHN</span>
+                            <span className="block font-display text-lg font-extrabold tracking-tight">BHN</span>
                             <span className="block text-[10px] font-semibold tracking-[0.18em] text-ink-400 uppercase">
-                                Inter-Provincial Hospital Network
+                                Bukidnon Hospital Network
                             </span>
                         </span>
                     </Link>
@@ -81,7 +81,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
                 <div className="relative z-10 border-t border-white/10 p-10 xl:p-14">
                     <p className="max-w-md text-[11px] leading-5 text-ink-500">
                         Availability is manually updated by each hospital. A referral is not accepted until authorized receiving-hospital staff
-                        confirm it in IPHN.
+                        confirm it in BHN.
                     </p>
                 </div>
             </aside>
@@ -93,8 +93,8 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
                             <HeartPulse className="size-5" />
                         </span>
                         <div>
-                            <p className="font-display text-base font-extrabold text-ink-950">IPHN</p>
-                            <p className="text-[10px] font-semibold tracking-wide text-ink-500 uppercase">Inter-Provincial Hospital Network</p>
+                            <p className="font-display text-base font-extrabold text-ink-950">BHN</p>
+                            <p className="text-[10px] font-semibold tracking-wide text-ink-500 uppercase">Bukidnon Hospital Network</p>
                         </div>
                     </div>
 
@@ -128,7 +128,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
                     {footer && <div className="mt-6">{footer}</div>}
 
                     <p className="mt-8 text-center text-[11px] leading-5 text-ink-400">
-                        {settings?.network_name ?? 'Inter-Provincial Hospital Network'} · Authorized personnel only. Accounts are provisioned by network
+                        {settings?.network_name ?? 'Bukidnon Hospital Network'} · Authorized personnel only. Accounts are provisioned by network
                         administrators.
                     </p>
                 </div>

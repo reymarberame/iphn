@@ -79,12 +79,12 @@ class HandleInertiaRequests extends Middleware
             'notifications' => $notifications,
             'reference' => $reference,
             'settings' => [
-                'network_name' => $settings['network_name'] ?? 'Inter-Provincial Hospital Network',
+                'network_name' => $settings['network_name'] ?? 'Bukidnon Hospital Network',
                 'freshness_fresh_minutes' => (int) ($settings['freshness_fresh_minutes'] ?? 15),
                 'freshness_aging_minutes' => (int) ($settings['freshness_aging_minutes'] ?? 60),
                 'reservation_ttl_minutes' => (int) ($settings['reservation_ttl_minutes'] ?? 120),
                 'disclaimer' => $settings['availability_disclaimer'] ?? 'Availability is reported by each hospital and does not confirm admission or acceptance of a referral.',
-                'support_email' => $settings['support_email'] ?? 'support@iphn.test',
+                'support_email' => $settings['support_email'] ?? 'support@bhn.test',
             ],
         ];
     }

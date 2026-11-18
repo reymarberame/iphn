@@ -381,7 +381,7 @@ export default function ReferralShow({
         },
         complete: {
             title: 'Complete transfer',
-            description: 'Close the referral coordination record. IPHN does not store a clinical record.',
+            description: 'Close the referral coordination record. BHN does not store a clinical record.',
             confirm: 'Complete transfer',
             icon: CheckCircle2,
             variant: 'primary',
@@ -693,7 +693,7 @@ export default function ReferralShow({
                         />
                     </Field>
                     <InfoCallout tone="brand">
-                        Confirming arrival consumes the active bed hold and marks the bed occupied. Clinical details are not recorded in IPHN.
+                        Confirming arrival consumes the active bed hold and marks the bed occupied. Clinical details are not recorded in BHN.
                     </InfoCallout>
                 </div>
             );
@@ -1289,7 +1289,7 @@ export default function ReferralShow({
                         </Card>
 
                         <InfoCallout tone="slate" title="Privacy reminder">
-                            IPHN stores coordination data only. Do not send full clinical narratives, imaging, or laboratory results through referral documents.
+                            BHN stores coordination data only. Do not send full clinical narratives, imaging, or laboratory results through referral documents.
                         </InfoCallout>
                     </aside>
                 </div>

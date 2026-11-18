@@ -47,10 +47,10 @@ class AccessSeeder extends Seeder
                 'permissions' => $all,
             ],
             [
-                'name' => 'National Network Administrator',
+                'name' => 'Network Administrator',
                 'slug' => 'national_network_admin',
                 'scope_type' => 'network',
-                'description' => 'Manages the national hospital network, users, and aggregate reports.',
+                'description' => 'Manages the hospital network, users, and aggregate reports.',
                 'permissions' => [
                     'hospitals.manage', 'hospitals.register', 'beds.view', 'referrals.view', 'transfers.view',
                     'reports.view', 'reports.national', 'users.manage', 'audit.view', 'settings.manage',

@@ -445,7 +445,7 @@ class ReferralController extends Controller
 
         $this->transfers->complete($referral->transfer, $request->user());
 
-        return back()->with('success', 'Transfer completed. No clinical record is stored by IPHN.');
+        return back()->with('success', 'Transfer completed. No clinical record is stored by BHN.');
     }
 
     public function uploadDocument(Request $request, Referral $referral): RedirectResponse

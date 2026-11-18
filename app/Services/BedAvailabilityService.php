@@ -9,6 +9,7 @@ use App\Models\BedStatusHistory;
 use App\Models\Hospital;
 use App\Models\Referral;
 use App\Models\SystemSetting;
+use App\Models\TransferRecord;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -208,7 +209,7 @@ class BedAvailabilityService
     }
 
     /**
-     * Filters used by the national/regional dashboard, directory and search.
+     * Filters used by the network/regional dashboard, directory and search.
      */
     public function filteredHospitalsQuery(User $user, array $filters = []): Builder
     {
@@ -313,7 +314,7 @@ class BedAvailabilityService
             ->whereNotIn('status', [Referral::STATUS_COMPLETED, Referral::STATUS_CANCELLED, Referral::STATUS_DECLINED, Referral::STATUS_EXPIRED])
             ->count();
 
-        $transfers = \App\Models\TransferRecord::query()
+        $transfers = TransferRecord::query()
             ->whereHas('referral', fn (Builder $q) => $q->where('receiving_hospital_id', $hospital->id)->orWhere('referring_hospital_id', $hospital->id))
             ->whereIn('status', ['scheduled', 'ready', 'in_transit'])
             ->count();

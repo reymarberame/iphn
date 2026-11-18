@@ -198,7 +198,7 @@ export default function AppLayout({ children }) {
                         <HeartPulse className="size-5 text-brand-300" />
                     </span>
                     <span className="min-w-0">
-                        <span className="block truncate font-display text-sm font-extrabold tracking-tight">IPHN</span>
+                        <span className="block truncate font-display text-sm font-extrabold tracking-tight">BHN</span>
                         <span className="block truncate text-[10px] font-medium tracking-wide text-ink-400 uppercase">
                             Care coordination
                         </span>
@@ -303,7 +303,7 @@ export default function AppLayout({ children }) {
 
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-[10px] font-semibold tracking-[0.14em] text-ink-500 uppercase">
-                                {current?.section ?? 'Inter-Provincial Hospital Network'}
+                                {current?.section ?? 'Bukidnon Hospital Network'}
                             </p>
                             <p className="truncate font-display text-sm font-bold text-ink-900">
                                 {current?.label ?? 'Network overview'}
@@ -448,9 +448,9 @@ export default function AppLayout({ children }) {
 
                 <footer className="mx-auto w-full max-w-[1500px] px-4 pb-8 sm:px-6 lg:px-8">
                     <div className="flex flex-col gap-2 border-t border-ink-100 pt-5 text-[11px] text-ink-400 sm:flex-row sm:items-center sm:justify-between">
-                        <p>{settings?.network_name ?? 'Inter-Provincial Hospital Network'} · IPHN demo environment</p>
+                        <p>{settings?.network_name ?? 'Bukidnon Hospital Network'} · BHN demo environment</p>
                         <p>
-                            Support: <a href={`mailto:${settings?.support_email ?? 'support@iphn.test'}`} className="font-medium text-ink-500 hover:text-brand-700">{settings?.support_email ?? 'support@iphn.test'}</a>
+                            Support: <a href={`mailto:${settings?.support_email ?? 'support@bhn.test'}`} className="font-medium text-ink-500 hover:text-brand-700">{settings?.support_email ?? 'support@bhn.test'}</a>
                         </p>
                     </div>
                 </footer>

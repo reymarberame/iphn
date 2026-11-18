@@ -3,12 +3,12 @@ import '../css/app.css';
 import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 
-const appName = 'IPHN';
+const appName = 'BHN';
 
 const pages = import.meta.glob('./Pages/**/*.jsx');
 
 createInertiaApp({
-    title: (title) => (title ? `${title} · ${appName}` : `${appName} · Inter-Provincial Hospital Network`),
+    title: (title) => (title ? `${title} · ${appName}` : `${appName} · Bukidnon Hospital Network`),
     resolve: (name) => {
         const page = pages[`./Pages/${name}.jsx`];
 

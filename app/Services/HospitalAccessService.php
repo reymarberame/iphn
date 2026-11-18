@@ -326,7 +326,7 @@ class HospitalAccessService
         $scopes = $user->adminScopes;
 
         if ($scopes->isEmpty() || $this->isSuperAdmin($user)) {
-            return 'National scope';
+            return 'Network scope';
         }
 
         $labels = $scopes->map(function (AdminScope $scope) {
@@ -337,7 +337,7 @@ class HospitalAccessService
             return $scope->region?->short_name ?: $scope->region?->name;
         })->filter()->unique();
 
-        return $labels->isEmpty() ? 'National scope' : $labels->implode(' · ');
+        return $labels->isEmpty() ? 'Network scope' : $labels->implode(' · ');
     }
 
     /**

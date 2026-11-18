@@ -7,7 +7,6 @@ use App\Services\AuditLogger;
 use App\Services\HospitalAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,12 +29,12 @@ class AdminSettingController extends Controller
 
         return Inertia::render('Admin/Settings/Index', [
             'settings' => [
-                'network_name' => $settings['network_name'] ?? 'Inter-Provincial Hospital Network',
+                'network_name' => $settings['network_name'] ?? 'Bukidnon Hospital Network',
                 'freshness_fresh_minutes' => (int) ($settings['freshness_fresh_minutes'] ?? 15),
                 'freshness_aging_minutes' => (int) ($settings['freshness_aging_minutes'] ?? 60),
                 'reservation_ttl_minutes' => (int) ($settings['reservation_ttl_minutes'] ?? 120),
-                'availability_disclaimer' => $settings['availability_disclaimer'] ?? config('iphn.disclaimer'),
-                'support_email' => $settings['support_email'] ?? 'support@iphn.test',
+                'availability_disclaimer' => $settings['availability_disclaimer'] ?? config('bhn.disclaimer'),
+                'support_email' => $settings['support_email'] ?? 'support@bhn.test',
             ],
         ]);
     }

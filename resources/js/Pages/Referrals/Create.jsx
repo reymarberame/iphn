@@ -249,7 +249,7 @@ export default function ReferralCreate({ referringHospitals = [], receivingHospi
                                 </span>
                                 <div>
                                     <h2 className="heading-3">Patient identification</h2>
-                                    <p className="subtle mt-1">Use your hospital's reference. IPHN does not store a full clinical record.</p>
+                                    <p className="subtle mt-1">Use your hospital's reference. BHN does not store a full clinical record.</p>
                                 </div>
                             </div>
 
@@ -266,7 +266,7 @@ export default function ReferralCreate({ referringHospitals = [], receivingHospi
                                         value={form.data.patient_reference}
                                         onChange={(event) => form.setData('patient_reference', event.target.value)}
                                         error={form.errors.patient_reference}
-                                        placeholder="e.g. DRMC-2026-01842"
+                                        placeholder="e.g. BPMC-2026-01842"
                                     />
                                 </Field>
 

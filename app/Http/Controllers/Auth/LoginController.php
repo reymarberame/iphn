@@ -19,8 +19,8 @@ class LoginController extends Controller
         }
 
         return Inertia::render('Auth/Login', [
-            'demoAccounts' => config('iphn.demo_accounts'),
-            'demoPassword' => config('iphn.demo_password'),
+            'demoAccounts' => config('bhn.demo_accounts'),
+            'demoPassword' => config('bhn.demo_password'),
             'status' => $request->session()->get('status'),
         ]);
     }

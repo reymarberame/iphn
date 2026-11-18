@@ -77,7 +77,7 @@ class DashboardController extends Controller
             'filters' => $filters,
             'recentReferrals' => $recentReferrals,
             'recentUpdates' => $recentUpdates,
-            'demoNotice' => config('iphn.disclaimer'),
+            'demoNotice' => config('bhn.disclaimer'),
         ]);
     }
 
@@ -186,7 +186,7 @@ class DashboardController extends Controller
             'transfers' => $transfers,
             'canViewReferrals' => $baseReferral,
             'canUpdateBeds' => $this->access->hasHospitalPermission($user, $hospitalId, 'beds.update'),
-            'demoNotice' => config('iphn.disclaimer'),
+            'demoNotice' => config('bhn.disclaimer'),
         ]);
     }
 

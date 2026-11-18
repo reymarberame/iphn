@@ -184,7 +184,7 @@ class TransferService
         $this->notifications->referralEvent(
             $referral,
             'Transfer completed',
-            $referral->referral_number.' has been completed. No clinical record is stored in IPHN.',
+            $referral->referral_number.' has been completed. No clinical record is stored in BHN.',
             $user
         );
 

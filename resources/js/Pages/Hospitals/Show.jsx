@@ -335,7 +335,7 @@ export default function HospitalShow({ hospital, availability, referringHospital
                         )}
 
                         <InfoCallout tone="slate" title="Data integrity" icon={ShieldCheck}>
-                            Counts are calculated from individual bed records. IPHN never accepts a manually entered hospital-wide total.
+                            Counts are calculated from individual bed records. BHN never accepts a manually entered hospital-wide total.
                         </InfoCallout>
                     </div>
                 </div>

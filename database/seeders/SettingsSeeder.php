@@ -10,12 +10,12 @@ class SettingsSeeder extends Seeder
     public function run(): void
     {
         $settings = [
-            'network_name' => 'Inter-Provincial Hospital Network',
+            'network_name' => 'Bukidnon Hospital Network',
             'freshness_fresh_minutes' => '15',
             'freshness_aging_minutes' => '60',
             'reservation_ttl_minutes' => '120',
-            'availability_disclaimer' => config('iphn.disclaimer'),
-            'support_email' => 'support@iphn.test',
+            'availability_disclaimer' => config('bhn.disclaimer'),
+            'support_email' => 'support@bhn.test',
         ];
 
         foreach ($settings as $key => $value) {

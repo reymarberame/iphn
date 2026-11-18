@@ -25,7 +25,7 @@ export default function Login({ demoAccounts = [], demoPassword = 'Password@123'
 
     return (
         <AuthLayout
-            title="Sign in to IPHN"
+            title="Sign in to BHN"
             subtitle="Use the account provisioned by your network administrator."
             footer={
                 <div className="flex flex-col items-center gap-2 text-center">

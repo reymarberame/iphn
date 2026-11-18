@@ -56,7 +56,7 @@ class ReportController extends Controller
         $to = $request->filled('date_to') ? Carbon::parse($request->input('date_to'))->endOfDay() : now()->endOfDay();
 
         return match ($type) {
-            'availability' => $this->csv('iphn-bed-availability-'.now()->format('Ymd').'.csv', $this->reports->availabilityRows($user), [
+            'availability' => $this->csv('bhn-bed-availability-'.now()->format('Ymd').'.csv', $this->reports->availabilityRows($user), [
                 'hospital', 'code', 'province', 'category', 'total', 'available', 'occupied', 'reserved', 'cleaning', 'out_of_service', 'last_updated_at', 'freshness',
             ]),
             'referrals' => $this->exportReferrals($request, $from, $to),
@@ -71,7 +71,7 @@ class ReportController extends Controller
             abort(403, 'Patient-linked referral rows are restricted to the referring and receiving hospitals.');
         }
 
-        return $this->csv('iphn-referrals-'.now()->format('Ymd').'.csv', $this->reports->referralRows($request->user(), $from, $to), [
+        return $this->csv('bhn-referrals-'.now()->format('Ymd').'.csv', $this->reports->referralRows($request->user(), $from, $to), [
             'referral_number', 'referring_hospital', 'receiving_hospital', 'patient_reference', 'urgency', 'status',
             'submitted_at', 'accepted_at', 'closed_at', 'created_at',
         ]);
@@ -83,7 +83,7 @@ class ReportController extends Controller
             abort(403, 'Patient-linked transfer rows are restricted to the referring and receiving hospitals.');
         }
 
-        return $this->csv('iphn-transfers-'.now()->format('Ymd').'.csv', $this->reports->transferRows($request->user(), $from, $to), [
+        return $this->csv('bhn-transfers-'.now()->format('Ymd').'.csv', $this->reports->transferRows($request->user(), $from, $to), [
             'referral_number', 'referring_hospital', 'receiving_hospital', 'status', 'transport',
             'departure_at', 'estimated_arrival_at', 'arrival_at', 'duration_minutes',
         ]);

@@ -1,4 +1,4 @@
-# IPHN REST API (v1)
+# BHN REST API (v1)
 
 Base URL: `{APP_URL}/api/v1`
 
@@ -66,7 +66,7 @@ Rate limited per email/IP. Body:
 
 ```json
 {
-  "email": "hospitaladmin@iphn.test",
+  "email": "hospitaladmin@bhn.test",
   "password": "Password@123",
   "device_name": "referral-tablet-01"
 }
@@ -79,9 +79,9 @@ Response `data`:
   "token": "1|...",
   "token_type": "Bearer",
   "user": {
-    "id": 4,
-    "name": "Davao Regional Medical Center Admin",
-    "email": "hospitaladmin@iphn.test",
+    "id": 5,
+    "name": "Bukidnon Provincial Medical Center Admin",
+    "email": "hospitaladmin@bhn.test",
     "is_network_user": false,
     "roles": ["Hospital Administrator"],
     "permissions": ["beds.view", "referrals.view", "..."],
@@ -252,7 +252,7 @@ Browsing the receiving hospital's availability does **not** accept a referral or
 {
   "referring_hospital_id": 1,
   "receiving_hospital_id": 2,
-  "patient_reference": "DRMC-2026-0451",
+  "patient_reference": "BPMC-2026-0451",
   "patient_name": "Juan Dela Cruz",
   "patient_age": 54,
   "patient_sex": "male",
@@ -333,7 +333,7 @@ Notifications are scoped to the authenticated user; IDs from other users return 
 curl -s -X POST http://localhost:8000/api/v1/auth/login \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
-  -d '{"email":"referral@iphn.test","password":"Password@123"}'
+  -d '{"email":"referral@bhn.test","password":"Password@123"}'
 
 # List incoming referrals
 curl -s "http://localhost:8000/api/v1/referrals?direction=incoming&per_page=10" \

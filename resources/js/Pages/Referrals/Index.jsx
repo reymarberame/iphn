@@ -272,7 +272,7 @@ export default function ReferralIndex({ referrals, filters = {}, statusOptions =
                 </Card>
 
                 <p className="text-[11px] leading-5 text-ink-400">
-                    Referral numbers are safe coordination identifiers. IPHN stores only the minimum information needed to route and coordinate a transfer; clinical
+                    Referral numbers are safe coordination identifiers. BHN stores only the minimum information needed to route and coordinate a transfer; clinical
                     records remain in each hospital's own system.
                 </p>
             </div>

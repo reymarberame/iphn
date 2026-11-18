@@ -6,6 +6,7 @@ use App\Models\AdminScope;
 use App\Models\Hospital;
 use App\Models\HospitalUserMembership;
 use App\Models\LoginLog;
+use App\Models\Province;
 use App\Models\Region;
 use App\Models\Role;
 use App\Models\User;
@@ -15,119 +16,139 @@ class DemoUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $password = config('iphn.demo_password');
+        $password = config('bhn.demo_password');
         $roles = Role::query()->pluck('id', 'slug');
         $hospitals = Hospital::query()->pluck('id', 'hospital_code');
-        $regionXI = Region::query()->where('short_name', 'Region XI')->firstOrFail();
+        $regionX = Region::query()->where('short_name', 'Region X')->firstOrFail();
+        $bukidnon = Province::query()->where('name', 'Bukidnon')->firstOrFail();
 
         $users = [
             [
-                'email' => 'superadmin@iphn.test',
+                'email' => 'superadmin@bhn.test',
                 'name' => 'Network Super Administrator',
                 'phone' => '0917 100 0001',
                 'role' => 'super_admin',
                 'hospital' => null,
                 'region' => null,
+                'province' => null,
             ],
             [
-                'email' => 'network@iphn.test',
-                'name' => 'National Network Administrator',
+                'email' => 'network@bhn.test',
+                'name' => 'Bukidnon Network Administrator',
                 'phone' => '0917 100 0002',
                 'role' => 'national_network_admin',
                 'hospital' => null,
                 'region' => null,
+                'province' => null,
             ],
             [
-                'email' => 'region11@iphn.test',
-                'name' => 'Region XI Administrator',
+                'email' => 'region10@bhn.test',
+                'name' => 'Region X Administrator',
                 'phone' => '0917 100 0003',
                 'role' => 'regional_admin',
                 'hospital' => null,
-                'region' => $regionXI->id,
+                'region' => $regionX->id,
+                'province' => null,
             ],
             [
-                'email' => 'hospitaladmin@iphn.test',
-                'name' => 'Davao Regional Medical Center Admin',
+                'email' => 'province@bhn.test',
+                'name' => 'Bukidnon Provincial Administrator',
                 'phone' => '0917 100 0004',
-                'role' => 'hospital_admin',
-                'hospital' => 'DRMC-1101',
+                'role' => 'provincial_admin',
+                'hospital' => null,
+                'region' => null,
+                'province' => $bukidnon->id,
             ],
             [
-                'email' => 'bedmanager@iphn.test',
-                'name' => 'DRMC Bed Manager',
+                'email' => 'hospitaladmin@bhn.test',
+                'name' => 'Bukidnon Provincial Medical Center Admin',
                 'phone' => '0917 100 0005',
-                'role' => 'bed_manager',
-                'hospital' => 'DRMC-1101',
-            ],
-            [
-                'email' => 'erstaff@iphn.test',
-                'name' => 'DRMC ER Staff',
-                'phone' => '0917 100 0006',
-                'role' => 'er_staff',
-                'hospital' => 'DRMC-1101',
-            ],
-            [
-                'email' => 'referral@iphn.test',
-                'name' => 'DRMC Referral Coordinator',
-                'phone' => '0917 100 0007',
-                'role' => 'referral_coordinator',
-                'hospital' => 'DRMC-1101',
-            ],
-            [
-                'email' => 'admission@iphn.test',
-                'name' => 'SPMC Admission Staff',
-                'phone' => '0917 100 0008',
-                'role' => 'admission_staff',
-                'hospital' => 'SPMC-1102',
-            ],
-            [
-                'email' => 'coordinator@spmc.test',
-                'name' => 'SPMC Referral Coordinator',
-                'phone' => '0917 100 0009',
-                'role' => 'referral_coordinator',
-                'hospital' => 'SPMC-1102',
-            ],
-            [
-                'email' => 'bedmanager@spmc.test',
-                'name' => 'SPMC Bed Manager',
-                'phone' => '0917 100 0010',
-                'role' => 'bed_manager',
-                'hospital' => 'SPMC-1102',
-            ],
-            [
-                'email' => 'admin@davaodoctors.test',
-                'name' => 'Davao Doctors Hospital Admin',
-                'phone' => '0917 100 0011',
                 'role' => 'hospital_admin',
-                'hospital' => 'DDH-1103',
+                'hospital' => 'BPMC-1013',
             ],
             [
-                'email' => 'referral@davnor.test',
-                'name' => 'Davao del Norte Referral Coordinator',
-                'phone' => '0917 100 0012',
+                'email' => 'bedmanager@bhn.test',
+                'name' => 'BPMC Bed Manager',
+                'phone' => '0917 100 0006',
+                'role' => 'bed_manager',
+                'hospital' => 'BPMC-1013',
+            ],
+            [
+                'email' => 'erstaff@bhn.test',
+                'name' => 'BPMC ER Staff',
+                'phone' => '0917 100 0007',
+                'role' => 'er_staff',
+                'hospital' => 'BPMC-1013',
+            ],
+            [
+                'email' => 'referral@bhn.test',
+                'name' => 'BPMC Referral Coordinator',
+                'phone' => '0917 100 0008',
                 'role' => 'referral_coordinator',
-                'hospital' => 'DNPH-1105',
+                'hospital' => 'BPMC-1013',
             ],
             [
-                'email' => 'referral@davaooriental.test',
-                'name' => 'Davao Oriental Referral Coordinator',
+                'email' => 'admission@vcmc.bhn.test',
+                'name' => 'VCMC Admission Staff',
+                'phone' => '0917 100 0009',
+                'role' => 'admission_staff',
+                'hospital' => 'VCMC-1015',
+            ],
+            [
+                'email' => 'coordinator@vcmc.bhn.test',
+                'name' => 'VCMC Referral Coordinator',
+                'phone' => '0917 100 0010',
+                'role' => 'referral_coordinator',
+                'hospital' => 'VCMC-1015',
+            ],
+            [
+                'email' => 'bedmanager@vcmc.bhn.test',
+                'name' => 'VCMC Bed Manager',
+                'phone' => '0917 100 0011',
+                'role' => 'bed_manager',
+                'hospital' => 'VCMC-1015',
+            ],
+            [
+                'email' => 'admin@bdh.bhn.test',
+                'name' => 'Bukidnon Doctors Hospital Admin',
+                'phone' => '0917 100 0012',
+                'role' => 'hospital_admin',
+                'hospital' => 'BDH-1014',
+            ],
+            [
+                'email' => 'referral@mdh.bhn.test',
+                'name' => 'Maramag District Referral Coordinator',
                 'phone' => '0917 100 0013',
                 'role' => 'referral_coordinator',
-                'hospital' => 'DOPMC-1106',
+                'hospital' => 'MDH-1017',
             ],
             [
-                'email' => 'admin@davaodeoro.test',
-                'name' => 'Davao de Oro Hospital Admin',
+                'email' => 'referral@qmh.bhn.test',
+                'name' => 'Quezon Municipal Referral Coordinator',
                 'phone' => '0917 100 0014',
-                'role' => 'hospital_admin',
-                'hospital' => 'DOPH-1107',
+                'role' => 'referral_coordinator',
+                'hospital' => 'QMH-1020',
             ],
             [
-                'email' => 'admin@docph.test',
-                'name' => 'Davao Occidental Hospital Admin',
+                'email' => 'admin@dcmh.bhn.test',
+                'name' => 'Don Carlos Municipal Hospital Admin',
                 'phone' => '0917 100 0015',
                 'role' => 'hospital_admin',
-                'hospital' => 'DOCPH-1108',
+                'hospital' => 'DCMH-1018',
+            ],
+            [
+                'email' => 'admin@mfch.bhn.test',
+                'name' => 'Manolo Fortich Community Hospital Admin',
+                'phone' => '0917 100 0016',
+                'role' => 'hospital_admin',
+                'hospital' => 'MFCH-1019',
+            ],
+            [
+                'email' => 'admin@vdh.bhn.test',
+                'name' => 'Valencia Doctors Hospital Admin',
+                'phone' => '0917 100 0017',
+                'role' => 'hospital_admin',
+                'hospital' => 'VDH-1016',
             ],
         ];
 
@@ -155,6 +176,13 @@ class DemoUserSeeder extends Seeder
                         []
                     );
                 }
+
+                if (! empty($data['province'])) {
+                    AdminScope::query()->updateOrCreate(
+                        ['user_id' => $user->id, 'region_id' => null, 'province_id' => $data['province']],
+                        []
+                    );
+                }
             } else {
                 $user->roles()->sync([]);
                 HospitalUserMembership::query()->updateOrCreate(
@@ -169,11 +197,11 @@ class DemoUserSeeder extends Seeder
         }
 
         $loginSamples = [
-            ['email' => 'superadmin@iphn.test', 'minutes' => 240, 'success' => true],
-            ['email' => 'bedmanager@iphn.test', 'minutes' => 180, 'success' => true],
-            ['email' => 'admission@iphn.test', 'minutes' => 120, 'success' => true],
-            ['email' => 'referral@iphn.test', 'minutes' => 60, 'success' => true],
-            ['email' => 'unknown@iphn.test', 'minutes' => 30, 'success' => false],
+            ['email' => 'superadmin@bhn.test', 'minutes' => 240, 'success' => true],
+            ['email' => 'bedmanager@bhn.test', 'minutes' => 180, 'success' => true],
+            ['email' => 'admission@vcmc.bhn.test', 'minutes' => 120, 'success' => true],
+            ['email' => 'referral@bhn.test', 'minutes' => 60, 'success' => true],
+            ['email' => 'unknown@bhn.test', 'minutes' => 30, 'success' => false],
         ];
 
         foreach ($loginSamples as $sample) {
@@ -183,7 +211,7 @@ class DemoUserSeeder extends Seeder
                 'user_id' => $user?->id,
                 'email' => $sample['email'],
                 'ip_address' => '192.168.10.'.random_int(10, 250),
-                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) IPHN demo',
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) BHN demo',
                 'success' => $sample['success'],
                 'created_at' => now()->subMinutes($sample['minutes']),
             ]);

@@ -50,7 +50,7 @@ export default function AdminSettingsIndex({ settings }) {
                 <PageHeader
                     eyebrow="Administration"
                     title="Platform settings"
-                    description="Control network identity, bed-report freshness thresholds, reservation lifetime, and the availability disclaimer shown across IPHN."
+                    description="Control network identity, bed-report freshness thresholds, reservation lifetime, and the availability disclaimer shown across BHN."
                     actions={
                         <Badge tone="brand">
                             <ShieldCheck className="size-3" />
@@ -246,7 +246,7 @@ export default function AdminSettingsIndex({ settings }) {
                         <Card className="overflow-hidden">
                             <div className="bg-ink-950 p-5 text-white">
                                 <p className="text-[10px] font-semibold tracking-[0.14em] text-brand-300 uppercase">Current policy</p>
-                                <h2 className="mt-1 font-display text-lg font-bold">{form.data.network_name || 'Inter-Provincial Hospital Network'}</h2>
+                                <h2 className="mt-1 font-display text-lg font-bold">{form.data.network_name || 'Bukidnon Hospital Network'}</h2>
                                 <p className="mt-1 text-[11px] text-ink-300">Availability is manually reported by each hospital.</p>
                             </div>
                             <div className="space-y-3 p-4">
@@ -274,7 +274,7 @@ export default function AdminSettingsIndex({ settings }) {
                         </Card>
 
                         <InfoCallout tone="brand" title="Manual availability model" icon={Clock3}>
-                            IPHN never infers bed status from totals. Every availability count is derived from the status of individual beds reported by hospital staff.
+                            BHN never infers bed status from totals. Every availability count is derived from the status of individual beds reported by hospital staff.
                         </InfoCallout>
 
                         <InfoCallout tone="slate" title="Privacy boundaries">
