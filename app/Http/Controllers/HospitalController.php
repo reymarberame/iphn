@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Hospital;
+use App\Models\Municipality;
+use App\Models\Service;
 use App\Services\BedAvailabilityService;
 use App\Services\HospitalAccessService;
 use Illuminate\Http\Request;
@@ -51,6 +53,7 @@ class HospitalController extends Controller
         $referring = $this->referringHospitals($request->user())
             ->reject(fn (Hospital $item) => $item->id === $hospital->id)
             ->values();
+        $canManageProfile = $request->user()->can('update', $hospital);
 
         return Inertia::render('Hospitals/Show', [
             'hospital' => [
@@ -68,9 +71,12 @@ class HospitalController extends Controller
                 'email' => $hospital->email,
                 'bed_capacity' => $hospital->bed_capacity,
                 'notes' => $hospital->notes,
+                'municipality_id' => $hospital->municipality_id,
                 'municipality' => $hospital->municipality?->name,
                 'province' => $hospital->province?->name,
                 'region' => $hospital->region?->short_name,
+                'profile_updated_at' => $hospital->profile_updated_at?->toIso8601String(),
+                'service_ids' => $hospital->services->pluck('id')->values(),
                 'services' => $hospital->services->map(fn ($service) => [
                     'id' => $service->id,
                     'name' => $service->name,
@@ -85,6 +91,17 @@ class HospitalController extends Controller
                 'short_name' => $item->short_name,
             ])->values(),
             'canManageBeds' => $this->access->hasHospitalPermission($request->user(), $hospital->id, 'beds.manage'),
+            'canManageProfile' => $canManageProfile,
+            'isNetworkUser' => $this->access->isNetworkUser($request->user()),
+            'municipalities' => $canManageProfile
+                ? Municipality::query()
+                    ->with('province:id,name')
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'province_id'])
+                : [],
+            'services' => $canManageProfile
+                ? Service::query()->where('active', true)->orderBy('name')->get(['id', 'name'])
+                : [],
         ]);
     }
 

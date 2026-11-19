@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -9,12 +9,14 @@ import {
     Clock3,
     Mail,
     MapPin,
+    Pencil,
     Phone,
     ShieldCheck,
     Stethoscope,
     Users,
 } from 'lucide-react';
 import AppLayout from '../../Layouts/AppLayout';
+import EditProfileModal from './EditProfileModal';
 import {
     Badge,
     Button,
@@ -37,7 +39,17 @@ import {
     toneForOwnership,
 } from '../../lib/utils';
 
-export default function HospitalShow({ hospital, availability, referringHospitals = [], canManageBeds = false }) {
+export default function HospitalShow({
+    hospital,
+    availability,
+    referringHospitals = [],
+    canManageBeds = false,
+    canManageProfile = false,
+    isNetworkUser = false,
+    municipalities = [],
+    services = [],
+}) {
+    const [editingProfile, setEditingProfile] = useState(false);
     const counts = availability.counts;
     const categories = availability.categories ?? [];
     const wards = availability.wards ?? [];
@@ -75,6 +87,12 @@ export default function HospitalShow({ hospital, availability, referringHospital
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
+                            {canManageProfile && (
+                                <Button variant="secondary" size="sm" onClick={() => setEditingProfile(true)}>
+                                    <Pencil className="size-4" />
+                                    Edit profile
+                                </Button>
+                            )}
                             {canRefer && (
                                 <Link href={`/referrals/create?receiving_hospital=${hospital.id}`} className="btn btn-primary btn-sm">
                                     Refer a patient
@@ -340,6 +358,16 @@ export default function HospitalShow({ hospital, availability, referringHospital
                     </div>
                 </div>
             </div>
+
+            {editingProfile && canManageProfile && (
+                <EditProfileModal
+                    hospital={hospital}
+                    municipalities={municipalities}
+                    services={services}
+                    isNetworkUser={isNetworkUser}
+                    onClose={() => setEditingProfile(false)}
+                />
+            )}
         </AppLayout>
     );
 }

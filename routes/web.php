@@ -37,6 +37,11 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::get('/hospitals', [HospitalController::class, 'index'])->name('hospitals.index');
     Route::get('/hospitals/{hospital}', [HospitalController::class, 'show'])->name('hospitals.show');
+    // Hospital-scoped administrators can update their own facility profile.
+    // The policy and AdminHospitalController enforce scope and field restrictions.
+    Route::patch('/hospitals/{hospital}/profile', [AdminHospitalController::class, 'update'])
+        ->middleware('throttle:sensitive')
+        ->name('hospitals.profile.update');
 
     Route::get('/beds', [BedBoardController::class, 'index'])->name('beds.index');
     Route::get('/beds/{bed}/history', [BedBoardController::class, 'history'])->name('beds.history');

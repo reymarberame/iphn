@@ -38,6 +38,7 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 **Network administration**
 - Admin-provisioned users, roles, and hospital memberships
 - Network or hospital scopes for administrators
+- Hospital administrators can edit their own facility's profile — contact details, address, licensed capacity, services, and notes — directly from the hospital directory page; network-controlled fields stay locked
 - Audit log for administrative and workflow actions, plus login history
 - Operational reports and CSV exports for hospital staff; aggregate-only reporting for the super administrator
 - In-app notifications for referral, reservation, and stale-report events
@@ -241,7 +242,7 @@ mysql -uroot -e "CREATE DATABASE IF NOT EXISTS bhn_testing CHARACTER SET utf8mb4
 php artisan test
 ```
 
-The suite covers availability/freshness maths, referral transitions, hospital isolation, network-admin aggregate restrictions, reservation double-booking prevention, bed optimistic concurrency, API authentication/envelopes, direct-message delivery, authorization, unread counts, read receipts, sender-only editing/deletion, validation, tombstone broadcasts, demo-account gating, CSV formula-injection neutralisation, and security headers/CSP. Each test uses `RefreshDatabase`, so the testing schema is rebuilt automatically. Broadcasting is disabled in tests via `BROADCAST_CONNECTION=null`.
+The suite covers availability/freshness maths, referral transitions, hospital isolation, network-admin aggregate restrictions, reservation double-booking prevention, bed optimistic concurrency, API authentication/envelopes, direct-message delivery, authorization, unread counts, read receipts, sender-only editing/deletion, validation, tombstone broadcasts, hospital profile editing, demo-account gating, CSV formula-injection neutralisation, and security headers/CSP. Each test uses `RefreshDatabase`, so the testing schema is rebuilt automatically. Broadcasting is disabled in tests via `BROADCAST_CONNECTION=null`.
 
 ## Project structure
 

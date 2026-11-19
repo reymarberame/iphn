@@ -64,6 +64,7 @@ Referrals have both a numeric route key and a ULID `public_id`. The ULID is used
 3. **Individual bed records** require hospital membership or a scoped network role with `beds.view` (`BedPolicy@view`). The directory and aggregate availability remain browsable to hospital staff so they can identify a receiving facility.
 4. **Workflow actions** re-check hospital membership and role permission inside the service layer; controller policies are not the only guard.
 5. **Submitted IDs are not trusted.** The acting user comes from the authenticated session/token. Hospital IDs on actions are validated against the user's memberships or resolved from the record being acted on.
+6. **Hospital profile editing is policy-scoped.** `HospitalPolicy@update` allows hospital members with `hospitals.manage` to edit their own facility and scoped network administrators to edit facilities in their management scope. Hospital-scoped editors cannot change `hospital_code`, `ownership_type`, `status`, or `municipality_id`; the update controller strips those fields and records an audit entry.
 
 ### Network scopes
 
@@ -221,6 +222,7 @@ Current coverage:
 - API login, invalid/inactive credentials, bearer auth, profile, logout revocation, envelope shape
 - chat page, unread counts, participant-only authorization, idempotent direct conversations, message validation, delivery broadcasts, read receipts, sender-only editing/deletion, tombstones, and unread-count refresh after deletion
 - demo-account gating (default hidden, local-only when enabled), CSV formula-injection neutralisation, and security headers/CSP
+- hospital profile editing: own-facility updates by hospital administrators, restricted-field stripping, cross-hospital denial, staff denial, and network-admin updates
 
 Run:
 
