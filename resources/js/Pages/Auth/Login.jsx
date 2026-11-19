@@ -4,7 +4,7 @@ import { ArrowRight, Eye, EyeOff, KeyRound, LockKeyhole, Mail, ShieldCheck } fro
 import AuthLayout from '../../Layouts/AuthLayout';
 import { Button, Field, InfoCallout, TextInput } from '../../components/ui';
 
-export default function Login({ demoAccounts = [], demoPassword = 'Password@123', status }) {
+export default function Login({ demoAccounts = [], demoPassword = null, status }) {
     const [showPassword, setShowPassword] = useState(false);
     const [showDemo, setShowDemo] = useState(false);
     const form = useForm({
@@ -19,7 +19,7 @@ export default function Login({ demoAccounts = [], demoPassword = 'Password@123'
     };
 
     const useDemoAccount = (email) => {
-        form.setData({ email, password: demoPassword, remember: false });
+        form.setData({ email, password: demoPassword ?? '', remember: false });
         form.clearErrors();
     };
 
@@ -143,9 +143,15 @@ export default function Login({ demoAccounts = [], demoPassword = 'Password@123'
                     {showDemo && (
                         <div className="mt-3 space-y-2 animate-fade-in">
                             <p className="text-[11px] leading-5 text-ink-500">
-                                All demo accounts use the password{' '}
-                                <code className="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-ink-700">{demoPassword}</code>
-                                . Select an account to fill the form.
+                                {demoPassword ? (
+                                    <>
+                                        All demo accounts use the password{' '}
+                                        <code className="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-ink-700">{demoPassword}</code>
+                                        . Select an account to fill the form.
+                                    </>
+                                ) : (
+                                    'Select an account to fill the email field, then enter its password.'
+                                )}
                             </p>
                             <div className="max-h-64 space-y-1.5 overflow-y-auto rounded-xl border border-ink-100 bg-ink-50/60 p-2">
                                 {demoAccounts.map((account) => (

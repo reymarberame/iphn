@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\SystemSetting;
 use App\Services\AuditLogger;
 use App\Services\HospitalAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,6 +61,8 @@ class AdminSettingController extends Controller
         foreach ($validated as $key => $value) {
             SystemSetting::put($key, (string) $value, $user->id);
         }
+
+        Cache::forget(HandleInertiaRequests::SETTINGS_CACHE_KEY);
 
         $this->audit->record('settings.updated', null, $validated, null, $user);
 

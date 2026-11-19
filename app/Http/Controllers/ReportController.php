@@ -98,10 +98,41 @@ class ReportController extends Controller
 
             foreach ($rows as $row) {
                 $data = is_array($row) ? $row : (array) $row;
-                fputcsv($output, array_map(fn ($key) => $data[$key] ?? '', $headers));
+                fputcsv($output, array_map(fn ($key) => $this->csvCell($data[$key] ?? ''), $headers));
             }
 
             fclose($output);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Neutralise spreadsheet formula injection in exported cells.
+     *
+     * Excel and Google Sheets treat a leading =, +, -, @, or tab as a formula.
+     * Prefixing those values with a single quote forces them to be read as text.
+     */
+    private function csvCell(mixed $value): string
+    {
+        $value = $value === null ? '' : (string) $value;
+
+        // Control characters can hide a formula prefix from the user.
+        $value = str_replace(["\0", "\r"], '', $value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        $first = $value[0];
+
+        if (in_array($first, ['=', '+', '-', '@', "\t", "\n"], true)) {
+            // Preserve genuine negative numbers as numeric cells.
+            if ($first === '-' && is_numeric($value)) {
+                return $value;
+            }
+
+            return "'".$value;
+        }
+
+        return $value;
     }
 }

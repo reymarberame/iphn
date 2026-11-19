@@ -2,25 +2,25 @@
 
 namespace Database\Seeders;
 
-use App\Models\AdminScope;
 use App\Models\Hospital;
 use App\Models\HospitalUserMembership;
 use App\Models\LoginLog;
-use App\Models\Province;
-use App\Models\Region;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class DemoUserSeeder extends Seeder
 {
     public function run(): void
     {
         $password = config('bhn.demo_password');
+
+        if (blank($password)) {
+            throw new RuntimeException('Set BHN_DEMO_PASSWORD before running DemoUserSeeder.');
+        }
         $roles = Role::query()->pluck('id', 'slug');
         $hospitals = Hospital::query()->pluck('id', 'hospital_code');
-        $regionX = Region::query()->where('short_name', 'Region X')->firstOrFail();
-        $bukidnon = Province::query()->where('name', 'Bukidnon')->firstOrFail();
 
         $users = [
             [
@@ -29,35 +29,6 @@ class DemoUserSeeder extends Seeder
                 'phone' => '0917 100 0001',
                 'role' => 'super_admin',
                 'hospital' => null,
-                'region' => null,
-                'province' => null,
-            ],
-            [
-                'email' => 'network@bhn.test',
-                'name' => 'Bukidnon Network Administrator',
-                'phone' => '0917 100 0002',
-                'role' => 'national_network_admin',
-                'hospital' => null,
-                'region' => null,
-                'province' => null,
-            ],
-            [
-                'email' => 'region10@bhn.test',
-                'name' => 'Region X Administrator',
-                'phone' => '0917 100 0003',
-                'role' => 'regional_admin',
-                'hospital' => null,
-                'region' => $regionX->id,
-                'province' => null,
-            ],
-            [
-                'email' => 'province@bhn.test',
-                'name' => 'Bukidnon Provincial Administrator',
-                'phone' => '0917 100 0004',
-                'role' => 'provincial_admin',
-                'hospital' => null,
-                'region' => null,
-                'province' => $bukidnon->id,
             ],
             [
                 'email' => 'hospitaladmin@bhn.test',
@@ -74,38 +45,17 @@ class DemoUserSeeder extends Seeder
                 'hospital' => 'BPMC-1013',
             ],
             [
-                'email' => 'erstaff@bhn.test',
-                'name' => 'BPMC ER Staff',
-                'phone' => '0917 100 0007',
-                'role' => 'er_staff',
-                'hospital' => 'BPMC-1013',
-            ],
-            [
                 'email' => 'referral@bhn.test',
-                'name' => 'BPMC Referral Coordinator',
+                'name' => 'BPMC Hospital Staff',
                 'phone' => '0917 100 0008',
-                'role' => 'referral_coordinator',
+                'role' => 'hospital_staff',
                 'hospital' => 'BPMC-1013',
             ],
             [
                 'email' => 'admission@vcmc.bhn.test',
-                'name' => 'VCMC Admission Staff',
+                'name' => 'VCMC Hospital Staff',
                 'phone' => '0917 100 0009',
-                'role' => 'admission_staff',
-                'hospital' => 'VCMC-1015',
-            ],
-            [
-                'email' => 'coordinator@vcmc.bhn.test',
-                'name' => 'VCMC Referral Coordinator',
-                'phone' => '0917 100 0010',
-                'role' => 'referral_coordinator',
-                'hospital' => 'VCMC-1015',
-            ],
-            [
-                'email' => 'bedmanager@vcmc.bhn.test',
-                'name' => 'VCMC Bed Manager',
-                'phone' => '0917 100 0011',
-                'role' => 'bed_manager',
+                'role' => 'hospital_staff',
                 'hospital' => 'VCMC-1015',
             ],
             [
@@ -117,16 +67,16 @@ class DemoUserSeeder extends Seeder
             ],
             [
                 'email' => 'referral@mdh.bhn.test',
-                'name' => 'Maramag District Referral Coordinator',
+                'name' => 'Maramag District Hospital Staff',
                 'phone' => '0917 100 0013',
-                'role' => 'referral_coordinator',
+                'role' => 'hospital_staff',
                 'hospital' => 'MDH-1017',
             ],
             [
                 'email' => 'referral@qmh.bhn.test',
-                'name' => 'Quezon Municipal Referral Coordinator',
+                'name' => 'Quezon Municipal Hospital Staff',
                 'phone' => '0917 100 0014',
-                'role' => 'referral_coordinator',
+                'role' => 'hospital_staff',
                 'hospital' => 'QMH-1020',
             ],
             [
@@ -135,20 +85,6 @@ class DemoUserSeeder extends Seeder
                 'phone' => '0917 100 0015',
                 'role' => 'hospital_admin',
                 'hospital' => 'DCMH-1018',
-            ],
-            [
-                'email' => 'admin@mfch.bhn.test',
-                'name' => 'Manolo Fortich Community Hospital Admin',
-                'phone' => '0917 100 0016',
-                'role' => 'hospital_admin',
-                'hospital' => 'MFCH-1019',
-            ],
-            [
-                'email' => 'admin@vdh.bhn.test',
-                'name' => 'Valencia Doctors Hospital Admin',
-                'phone' => '0917 100 0017',
-                'role' => 'hospital_admin',
-                'hospital' => 'VDH-1016',
             ],
         ];
 
@@ -169,20 +105,6 @@ class DemoUserSeeder extends Seeder
 
             if ($role?->isNetworkScoped()) {
                 $user->roles()->sync([$roleId]);
-
-                if (! empty($data['region'])) {
-                    AdminScope::query()->updateOrCreate(
-                        ['user_id' => $user->id, 'region_id' => $data['region'], 'province_id' => null],
-                        []
-                    );
-                }
-
-                if (! empty($data['province'])) {
-                    AdminScope::query()->updateOrCreate(
-                        ['user_id' => $user->id, 'region_id' => null, 'province_id' => $data['province']],
-                        []
-                    );
-                }
             } else {
                 $user->roles()->sync([]);
                 HospitalUserMembership::query()->updateOrCreate(

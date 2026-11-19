@@ -36,5 +36,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('sensitive', function (Request $request) {
             return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
         });
+
+        RateLimiter::for('chat', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }

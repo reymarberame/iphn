@@ -81,10 +81,10 @@ class ReferralSeeder extends Seeder
             'referral_reason' => 'Uncontrolled hypertension with persistent headache and visual disturbance. Requires admission for workup closer to the patient family support network.',
             'contact_name' => 'VCMC Referral Coordinator',
             'contact_phone' => '0917 100 0010',
-            'created_by' => $users['coordinator@vcmc.bhn.test'],
+            'created_by' => $users['admission@vcmc.bhn.test'],
         ], [
-            ['status' => Referral::STATUS_DRAFT, 'at' => $now->copy()->subHours(2), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Referral created'],
-            ['status' => Referral::STATUS_SUBMITTED, 'at' => $now->copy()->subHours(1)->subMinutes(50), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Referral submitted to receiving hospital'],
+            ['status' => Referral::STATUS_DRAFT, 'at' => $now->copy()->subHours(2), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Referral created'],
+            ['status' => Referral::STATUS_SUBMITTED, 'at' => $now->copy()->subHours(1)->subMinutes(50), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Referral submitted to receiving hospital'],
             ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subMinutes(90), 'by' => $users['hospitaladmin@bhn.test'], 'reason' => 'Receiving hospital started review'],
         ]);
 
@@ -126,13 +126,13 @@ class ReferralSeeder extends Seeder
             'contact_name' => 'Quezon Municipal Referral Coordinator',
             'contact_phone' => '0917 100 0014',
             'created_by' => $users['referral@qmh.bhn.test'],
-            'coordinator_id' => $users['coordinator@vcmc.bhn.test'],
+            'coordinator_id' => $users['admission@vcmc.bhn.test'],
             'response_note' => 'Accepted for cardiac monitoring and electrophysiology evaluation.',
         ], [
             ['status' => Referral::STATUS_DRAFT, 'at' => $now->copy()->subHours(50), 'by' => $users['referral@qmh.bhn.test'], 'reason' => 'Referral created'],
             ['status' => Referral::STATUS_SUBMITTED, 'at' => $now->copy()->subHours(49), 'by' => $users['referral@qmh.bhn.test'], 'reason' => 'Referral submitted to receiving hospital'],
-            ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subHours(48), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Receiving hospital started review'],
-            ['status' => Referral::STATUS_ACCEPTED, 'at' => $now->copy()->subHours(47), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Accepted for cardiac monitoring'],
+            ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subHours(48), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Receiving hospital started review'],
+            ['status' => Referral::STATUS_ACCEPTED, 'at' => $now->copy()->subHours(47), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Accepted for cardiac monitoring'],
             ['status' => Referral::STATUS_TRANSFER_SCHEDULED, 'at' => $now->copy()->subHours(46), 'by' => $users['referral@qmh.bhn.test'], 'reason' => 'Transfer scheduled'],
             ['status' => Referral::STATUS_IN_TRANSIT, 'at' => $now->copy()->subHours(4), 'by' => $users['referral@qmh.bhn.test'], 'reason' => 'Patient departed referring hospital'],
         ]);
@@ -150,11 +150,11 @@ class ReferralSeeder extends Seeder
             'referral_reason' => 'Post-operative arrhythmia needing continuous telemetry and cardiology review.',
             'contact_name' => 'VCMC Referral Coordinator',
             'contact_phone' => '0917 100 0010',
-            'created_by' => $users['coordinator@vcmc.bhn.test'],
+            'created_by' => $users['admission@vcmc.bhn.test'],
             'decline_reason' => 'No monitored bed available at the requested time. Please refer to another facility.',
         ], [
-            ['status' => Referral::STATUS_DRAFT, 'at' => $now->copy()->subHours(36), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Referral created'],
-            ['status' => Referral::STATUS_SUBMITTED, 'at' => $now->copy()->subHours(35), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Referral submitted to receiving hospital'],
+            ['status' => Referral::STATUS_DRAFT, 'at' => $now->copy()->subHours(36), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Referral created'],
+            ['status' => Referral::STATUS_SUBMITTED, 'at' => $now->copy()->subHours(35), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Referral submitted to receiving hospital'],
             ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subHours(34), 'by' => $users['admin@bdh.bhn.test'], 'reason' => 'Receiving hospital started review'],
             ['status' => Referral::STATUS_DECLINED, 'at' => $now->copy()->subHours(33), 'by' => $users['admin@bdh.bhn.test'], 'reason' => 'No monitored bed available at the requested time'],
         ]);
@@ -194,16 +194,16 @@ class ReferralSeeder extends Seeder
             'contact_name' => 'Don Carlos Municipal Hospital Admin',
             'contact_phone' => '0917 100 0015',
             'created_by' => $users['admin@dcmh.bhn.test'],
-            'coordinator_id' => $users['coordinator@vcmc.bhn.test'],
+            'coordinator_id' => $users['admission@vcmc.bhn.test'],
             'response_note' => 'Accepted for pediatric admission. Bed held and patient received.',
         ], [
             ['status' => Referral::STATUS_DRAFT, 'at' => $now->copy()->subHours(72), 'by' => $users['admin@dcmh.bhn.test'], 'reason' => 'Referral created'],
             ['status' => Referral::STATUS_SUBMITTED, 'at' => $now->copy()->subHours(71), 'by' => $users['admin@dcmh.bhn.test'], 'reason' => 'Referral submitted to receiving hospital'],
-            ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subHours(70), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Receiving hospital started review'],
-            ['status' => Referral::STATUS_ACCEPTED, 'at' => $now->copy()->subHours(68), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Accepted for pediatric admission'],
+            ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subHours(70), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Receiving hospital started review'],
+            ['status' => Referral::STATUS_ACCEPTED, 'at' => $now->copy()->subHours(68), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Accepted for pediatric admission'],
             ['status' => Referral::STATUS_TRANSFER_SCHEDULED, 'at' => $now->copy()->subHours(66), 'by' => $users['admin@dcmh.bhn.test'], 'reason' => 'Transfer scheduled'],
             ['status' => Referral::STATUS_IN_TRANSIT, 'at' => $now->copy()->subHours(20), 'by' => $users['admin@dcmh.bhn.test'], 'reason' => 'Patient departed referring hospital'],
-            ['status' => Referral::STATUS_ARRIVED, 'at' => $now->copy()->subHours(18), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Receiving hospital confirmed arrival'],
+            ['status' => Referral::STATUS_ARRIVED, 'at' => $now->copy()->subHours(18), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Receiving hospital confirmed arrival'],
         ]);
 
         $referrals[] = $this->createReferral([
@@ -220,17 +220,17 @@ class ReferralSeeder extends Seeder
             'contact_name' => 'BPMC Referral Coordinator',
             'contact_phone' => '0917 100 0008',
             'created_by' => $users['referral@bhn.test'],
-            'coordinator_id' => $users['coordinator@vcmc.bhn.test'],
+            'coordinator_id' => $users['admission@vcmc.bhn.test'],
             'response_note' => 'Accepted and completed. Patient transferred to the neurology ward.',
         ], [
             ['status' => Referral::STATUS_DRAFT, 'at' => $now->copy()->subDays(6), 'by' => $users['referral@bhn.test'], 'reason' => 'Referral created'],
             ['status' => Referral::STATUS_SUBMITTED, 'at' => $now->copy()->subDays(6)->addHour(), 'by' => $users['referral@bhn.test'], 'reason' => 'Referral submitted to receiving hospital'],
-            ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subDays(5)->subHours(20), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Receiving hospital started review'],
-            ['status' => Referral::STATUS_ACCEPTED, 'at' => $now->copy()->subDays(5), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Accepted for neurology admission'],
+            ['status' => Referral::STATUS_UNDER_REVIEW, 'at' => $now->copy()->subDays(5)->subHours(20), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Receiving hospital started review'],
+            ['status' => Referral::STATUS_ACCEPTED, 'at' => $now->copy()->subDays(5), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Accepted for neurology admission'],
             ['status' => Referral::STATUS_TRANSFER_SCHEDULED, 'at' => $now->copy()->subDays(5)->addHour(), 'by' => $users['referral@bhn.test'], 'reason' => 'Transfer scheduled'],
             ['status' => Referral::STATUS_IN_TRANSIT, 'at' => $now->copy()->subDays(4), 'by' => $users['referral@bhn.test'], 'reason' => 'Patient departed referring hospital'],
-            ['status' => Referral::STATUS_ARRIVED, 'at' => $now->copy()->subDays(4)->addHours(2), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Receiving hospital confirmed arrival'],
-            ['status' => Referral::STATUS_COMPLETED, 'at' => $now->copy()->subDays(4)->addHours(3), 'by' => $users['coordinator@vcmc.bhn.test'], 'reason' => 'Transfer completed'],
+            ['status' => Referral::STATUS_ARRIVED, 'at' => $now->copy()->subDays(4)->addHours(2), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Receiving hospital confirmed arrival'],
+            ['status' => Referral::STATUS_COMPLETED, 'at' => $now->copy()->subDays(4)->addHours(3), 'by' => $users['admission@vcmc.bhn.test'], 'reason' => 'Transfer completed'],
         ]);
 
         $referrals[] = $this->createReferral([
@@ -255,11 +255,11 @@ class ReferralSeeder extends Seeder
 
         $this->attachReservation($referrals[3], $hospitals['BPMC-1013'], $users['hospitaladmin@bhn.test'], $now->copy()->subHours(21), $now->copy()->addMinutes(60));
 
-        $this->attachReservation($referrals[4], $hospitals['VCMC-1015'], $users['coordinator@vcmc.bhn.test'], $now->copy()->subHours(46), $now->copy()->addHours(3));
+        $this->attachReservation($referrals[4], $hospitals['VCMC-1015'], $users['admission@vcmc.bhn.test'], $now->copy()->subHours(46), $now->copy()->addHours(3));
 
-        $this->attachReservation($referrals[7], $hospitals['VCMC-1015'], $users['coordinator@vcmc.bhn.test'], $now->copy()->subHours(66), $now->copy()->subHours(20), true, $now->copy()->subHours(18));
+        $this->attachReservation($referrals[7], $hospitals['VCMC-1015'], $users['admission@vcmc.bhn.test'], $now->copy()->subHours(66), $now->copy()->subHours(20), true, $now->copy()->subHours(18));
 
-        $this->attachReservation($referrals[8], $hospitals['VCMC-1015'], $users['coordinator@vcmc.bhn.test'], $now->copy()->subDays(5)->addHour(), $now->copy()->subDays(4), true, $now->copy()->subDays(4)->addHours(2));
+        $this->attachReservation($referrals[8], $hospitals['VCMC-1015'], $users['admission@vcmc.bhn.test'], $now->copy()->subDays(5)->addHour(), $now->copy()->subDays(4), true, $now->copy()->subDays(4)->addHours(2));
 
         $this->attachTransfer($referrals[3], [
             'status' => TransferRecord::STATUS_SCHEDULED,
@@ -280,7 +280,7 @@ class ReferralSeeder extends Seeder
             'escort_contact' => '0917 200 0005',
             'departure_at' => $now->copy()->subHours(4),
             'estimated_arrival_at' => $now->copy()->addHour(),
-            'coordinator_id' => $users['coordinator@vcmc.bhn.test'],
+            'coordinator_id' => $users['admission@vcmc.bhn.test'],
             'created_by' => $users['referral@qmh.bhn.test'],
             'notes' => 'Continuous cardiac monitoring en route.',
         ]);
@@ -293,7 +293,7 @@ class ReferralSeeder extends Seeder
             'departure_at' => $now->copy()->subHours(20),
             'estimated_arrival_at' => $now->copy()->subHours(18),
             'arrival_at' => $now->copy()->subHours(18),
-            'coordinator_id' => $users['coordinator@vcmc.bhn.test'],
+            'coordinator_id' => $users['admission@vcmc.bhn.test'],
             'created_by' => $users['admin@dcmh.bhn.test'],
             'notes' => 'Patient received by pediatric team.',
         ]);
@@ -306,7 +306,7 @@ class ReferralSeeder extends Seeder
             'departure_at' => $now->copy()->subDays(4),
             'estimated_arrival_at' => $now->copy()->subDays(4)->addHours(2),
             'arrival_at' => $now->copy()->subDays(4)->addHours(2),
-            'coordinator_id' => $users['coordinator@vcmc.bhn.test'],
+            'coordinator_id' => $users['admission@vcmc.bhn.test'],
             'created_by' => $users['referral@bhn.test'],
             'notes' => 'Completed without incident.',
         ]);

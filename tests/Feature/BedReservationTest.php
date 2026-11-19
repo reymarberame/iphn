@@ -28,8 +28,8 @@ class BedReservationTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
         $bed = $this->bed($receiving);
 
@@ -45,8 +45,8 @@ class BedReservationTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
 
         $first = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
         $second = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
@@ -72,8 +72,8 @@ class BedReservationTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
         $bed = $this->bed($receiving, ['status' => Bed::STATUS_OUT_OF_SERVICE]);
 
@@ -86,8 +86,8 @@ class BedReservationTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
         $foreignBed = $this->bed($referring);
 
@@ -100,8 +100,8 @@ class BedReservationTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_SUBMITTED);
         $bed = $this->bed($receiving);
 
@@ -114,7 +114,7 @@ class BedReservationTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
+        $creator = $this->user('hospital_staff', $referring);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
         $bed = $this->bed($receiving);
 
@@ -133,8 +133,8 @@ class BedReservationTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
         $bed = $this->bed($receiving);
         $service = app(BedReservationService::class);
@@ -151,9 +151,9 @@ class BedReservationTest extends TestCase
         $referring = $this->hospital();
         $receiving = $this->hospital();
         $outsider = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
-        $stranger = $this->user('admission_staff', $outsider);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
+        $stranger = $this->user('hospital_staff', $outsider);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_ACCEPTED);
         $bed = $this->bed($receiving);
         $service = app(BedReservationService::class);

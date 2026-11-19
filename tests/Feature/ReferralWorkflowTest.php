@@ -24,7 +24,7 @@ class ReferralWorkflowTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
+        $creator = $this->user('hospital_staff', $referring);
         $referral = $this->referral($referring, $receiving, $creator);
 
         $this->assertTrue($referral->canTransitionTo(Referral::STATUS_SUBMITTED));
@@ -41,12 +41,12 @@ class ReferralWorkflowTest extends TestCase
         $this->assertFalse($referral->canTransitionTo(Referral::STATUS_DRAFT));
     }
 
-    public function test_receiving_coordinator_can_accept_a_submitted_referral(): void
+    public function test_receiving_staff_can_accept_a_submitted_referral(): void
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_SUBMITTED);
 
         $this->actingAs($receiver)
@@ -64,8 +64,8 @@ class ReferralWorkflowTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_SUBMITTED);
 
         $this->actingAs($creator)
@@ -79,8 +79,8 @@ class ReferralWorkflowTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator);
 
         $this->actingAs($receiver)
@@ -95,8 +95,8 @@ class ReferralWorkflowTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_SUBMITTED);
 
         $this->actingAs($receiver)
@@ -118,8 +118,8 @@ class ReferralWorkflowTest extends TestCase
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_SUBMITTED);
 
         $this->actingAs($creator)

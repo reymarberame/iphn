@@ -18,9 +18,12 @@ class LoginController extends Controller
             return redirect()->route('dashboard');
         }
 
+        $showDemoAccounts = app()->environment('local')
+            && (bool) config('bhn.show_demo_accounts');
+
         return Inertia::render('Auth/Login', [
-            'demoAccounts' => config('bhn.demo_accounts'),
-            'demoPassword' => config('bhn.demo_password'),
+            'demoAccounts' => $showDemoAccounts ? config('bhn.demo_accounts') : [],
+            'demoPassword' => $showDemoAccounts ? config('bhn.demo_password') : null,
             'status' => $request->session()->get('status'),
         ]);
     }

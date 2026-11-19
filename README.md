@@ -37,10 +37,17 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 
 **Network administration**
 - Admin-provisioned users, roles, and hospital memberships
-- Network / region / province scopes for administrators
+- Network or hospital scopes for administrators
 - Audit log for administrative and workflow actions, plus login history
-- Operational reports and CSV exports for hospital staff; aggregate-only reporting for network administrators
+- Operational reports and CSV exports for hospital staff; aggregate-only reporting for the super administrator
 - In-app notifications for referral, reservation, and stale-report events
+
+**Real-time direct messaging**
+- 1-to-1 direct messages between any active BHN users, delivered instantly over Laravel Reverb WebSockets
+- Private per-user channels keep messages, unread badges, read receipts, edits, and deletions in sync on every page
+- Senders can edit or delete their own messages; deletions leave a "This message was deleted" tombstone for both participants
+- Unread counts are derived from each participant's read cursor; opening a thread marks it read, and deleted messages are excluded
+- Chat history persists in MySQL, and the UI warns users not to share patient-identifiable information
 
 **REST API**
 - Versioned under `/api/v1`, authenticated with Sanctum bearer tokens
@@ -56,6 +63,7 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 | Build | Vite 6 |
 | Database | MySQL 8 (`bhn_db`, tests use `bhn_testing`) |
 | Auth | Session-based web login + Sanctum personal access tokens for API |
+| Realtime | Laravel Reverb 1, Laravel Echo, pusher-js |
 | Tests | PHPUnit 11 / Laravel test runner |
 
 ## Getting started
@@ -75,11 +83,43 @@ cp .env.example .env   # if starting from a fresh clone
 php artisan key:generate
 ```
 
+### Laragon (Windows)
+
+The project runs on Laragon's bundled Apache, PHP, and MySQL with no code changes:
+
+1. Clone/copy the project to `C:\laragon\www\emr`.
+2. Start **Apache** and **MySQL** from Laragon. The auto virtual host already points at `public/`, so the app is served at **http://emr.test**.
+3. Create the database once (Laragon can also do this for you):
+
+   ```bash
+   mysql -uroot -e "CREATE DATABASE IF NOT EXISTS bhn_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+   ```
+
+4. Set `APP_URL=http://emr.test` in `.env`, then install, migrate, and build:
+
+   ```bash
+   composer install
+   npm install
+   php artisan migrate:fresh --seed
+   npm run build
+   ```
+
+5. Start Reverb in a separate terminal so chat and unread badges work in real time:
+
+   ```bash
+   php artisan reverb:start --host=0.0.0.0 --port=8080
+   ```
+
+6. Open **http://emr.test** and sign in with a demo account, for example `hospitaladmin@bhn.test` / `Password@123`.
+
+> In PowerShell, use `npm.cmd` if script execution is disabled (`npm.cmd run build`, `npm.cmd install`).
+
 `.env.example` is already preconfigured for BHN:
 
 ```dotenv
 APP_NAME=BHN
 APP_URL=http://localhost:8000
+APP_TIMEZONE=Asia/Manila
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -92,8 +132,20 @@ SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 CACHE_STORE=database
 
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=local-app
+REVERB_APP_KEY=local-key
+REVERB_APP_SECRET=local-secret
+REVERB_HOST=localhost
+REVERB_PORT=8080
+REVERB_SCHEME=http
+
 BHN_DEMO_PASSWORD=Password@123
+BHN_SHOW_DEMO_ACCOUNTS=false
+SANCTUM_EXPIRATION_MINUTES=480
 ```
+
+> Generate unique Reverb credentials per deployment and keep `REVERB_APP_SECRET` server-side. The matching `VITE_REVERB_*` variables are compiled into the frontend bundle, so rebuild assets after changing them.
 
 Create the schema and demo data:
 
@@ -106,6 +158,7 @@ For local development:
 
 ```bash
 php artisan serve          # or: php -S 127.0.0.1:8010 -t public
+php artisan reverb:start --host=0.0.0.0 --port=8080
 npm run dev
 ```
 
@@ -132,45 +185,32 @@ BPMC is the demo referral hub; VCMC, BDH, MDH, DCMH, and QMH participate in the 
 
 ## Demo accounts
 
-All seeded accounts use the password **`Password@123`** (configurable through `BHN_DEMO_PASSWORD`).
+All seeded accounts use the password **`Password@123`** (configurable through `BHN_DEMO_PASSWORD`). The sign-in page can list five representative shortcuts **only in local development** when `BHN_SHOW_DEMO_ACCOUNTS=true`; the panel is omitted in every other environment. The full seeded set is below.
 
 | Email | Role | Scope |
 | --- | --- | --- |
 | `superadmin@bhn.test` | Super Administrator | Network |
-| `network@bhn.test` | Network Administrator | Network |
-| `region10@bhn.test` | Regional Administrator | Region X |
-| `province@bhn.test` | Provincial Administrator | Bukidnon |
 | `hospitaladmin@bhn.test` | Hospital Administrator | BPMC |
 | `bedmanager@bhn.test` | Hospital Bed Manager | BPMC |
-| `erstaff@bhn.test` | ER Staff | BPMC |
-| `referral@bhn.test` | Referral Coordinator | BPMC |
-| `admission@vcmc.bhn.test` | Admission Staff | VCMC |
-| `coordinator@vcmc.bhn.test` | Referral Coordinator | VCMC |
-| `bedmanager@vcmc.bhn.test` | Hospital Bed Manager | VCMC |
+| `referral@bhn.test` | Hospital Staff | BPMC |
+| `admission@vcmc.bhn.test` | Hospital Staff | VCMC |
 | `admin@bdh.bhn.test` | Hospital Administrator | BDH |
-| `referral@mdh.bhn.test` | Referral Coordinator | MDH |
-| `referral@qmh.bhn.test` | Referral Coordinator | QMH |
+| `referral@mdh.bhn.test` | Hospital Staff | MDH |
+| `referral@qmh.bhn.test` | Hospital Staff | QMH |
 | `admin@dcmh.bhn.test` | Hospital Administrator | DCMH |
-| `admin@mfch.bhn.test` | Hospital Administrator | MFCH |
-| `admin@vdh.bhn.test` | Hospital Administrator | VDH |
 
-> Network administrators without a hospital membership cannot open patient-linked referral or transfer records. The superadmin is intentionally network-only; sign in as a hospital user (for example `hospitaladmin@bhn.test` or `admission@vcmc.bhn.test`) to exercise the referral workflow.
+> The super administrator is intentionally network-only and cannot open patient-linked referral or transfer records. Sign in as a hospital user (for example `hospitaladmin@bhn.test` or `admission@vcmc.bhn.test`) to exercise the referral workflow.
 
 ## Roles and permissions
 
-Roles are stored in `roles` / `permissions` / `role_permissions`. Network, region, and province roles are attached through `user_roles`; hospital roles are attached through `hospital_user_memberships`. This keeps a user's hospital assignment and scope explicit.
+Roles are stored in `roles` / `permissions` / `role_permissions`. Network roles are attached through `user_roles`; hospital roles are attached through `hospital_user_memberships`. The seeded BHN deployment uses four roles. The schema still supports optional region/province admin scopes if a wider deployment needs them.
 
 | Role | Scope | Key permissions |
 | --- | --- | --- |
-| Super Administrator | network | All permissions |
-| Network Administrator | network | Hospitals, beds view, aggregate reports, users, audit, settings |
-| Regional Administrator | region | Hospitals and users within region, aggregate reporting |
-| Provincial Administrator | province | Hospitals and users within province, aggregate reporting |
+| Super Administrator | network | All permissions, network-wide administration |
 | Hospital Administrator | hospital | Hospital profile, users, beds, referrals, transfers, reports |
 | Hospital Bed Manager | hospital | Bed inventory and status reporting |
-| ER Staff | hospital | Bed status reporting |
-| Referral Coordinator | hospital | Referrals, bed reservations, transfers |
-| Admission Staff | hospital | Incoming referrals, bed reservations |
+| Hospital Staff | hospital | Referrals, bed reservations, transfers, bed status reporting |
 
 Hospital-scoped permission checks always require an **active membership** at that hospital. Submitted `hospital_id` / `user_id` values are never trusted; the acting user and hospital are resolved server-side.
 
@@ -178,14 +218,14 @@ Hospital-scoped permission checks always require an **active membership** at tha
 
 - Referral and transfer lists are restricted to hospitals where the user holds an active membership — even if the user also has a network role.
 - Individual referral/transfer views require membership at the referring or receiving hospital.
-- Network administrators receive aggregate reports only; `/reports` is available, `/referrals` and `/transfers` are not.
+- The super administrator receives aggregate reports only; `/reports` is available, `/referrals` and `/transfers` are not.
 - Individual bed records are visible only to hospital members (or scoped network users) with `beds.view`.
 
 ## Time zones and formatting
 
-- All timestamps are stored in **UTC**.
-- Web/API serialization uses ISO-8601 UTC strings.
-- The React UI formats dates in **Asia/Manila**. `datetime-local` inputs are converted to/from Manila wall-clock time explicitly, so a value entered as `2026-11-17 14:30` is sent as `2026-11-17T14:30:00+08:00`.
+- Application timestamps use **Asia/Manila** (`APP_TIMEZONE`, default `Asia/Manila`), so report date boundaries and scheduled commands match Philippine wall-clock time.
+- Web/API serialization uses ISO-8601 strings with the application offset (`+08:00`).
+- The React UI formats dates in **Asia/Manila**. `datetime-local` inputs use Manila wall-clock time explicitly, so a value entered as `2026-11-17 14:30` is sent as `2026-11-17T14:30:00+08:00`.
 
 ## Testing
 
@@ -201,7 +241,7 @@ mysql -uroot -e "CREATE DATABASE IF NOT EXISTS bhn_testing CHARACTER SET utf8mb4
 php artisan test
 ```
 
-The suite covers availability/freshness maths, referral transitions, hospital isolation, network-admin aggregate restrictions, reservation double-booking prevention, bed optimistic concurrency, and API authentication/envelopes. Each test uses `RefreshDatabase`, so the testing schema is rebuilt automatically.
+The suite covers availability/freshness maths, referral transitions, hospital isolation, network-admin aggregate restrictions, reservation double-booking prevention, bed optimistic concurrency, API authentication/envelopes, direct-message delivery, authorization, unread counts, read receipts, sender-only editing/deletion, validation, tombstone broadcasts, demo-account gating, CSV formula-injection neutralisation, and security headers/CSP. Each test uses `RefreshDatabase`, so the testing schema is rebuilt automatically. Broadcasting is disabled in tests via `BROADCAST_CONNECTION=null`.
 
 ## Project structure
 
@@ -211,8 +251,9 @@ app/
   Http/Controllers/Api/      Versioned REST controllers
   Models/                    Domain models
   Policies/                  Authorization rules
-  Services/                  Availability, reservations, referrals, transfers, reports, access, audit
-  Http/Middleware/           Inertia shared props, active-account enforcement
+  Services/                  Availability, reservations, referrals, transfers, reports, access, audit, chat
+  Events/                    Broadcast events (messages, edits, deletions, read receipts)
+  Http/Middleware/           Inertia shared props, active-account enforcement, security headers
 config/
   bhn.php                    Network branding, demo accounts, disclaimer, freshness defaults
 database/
@@ -238,6 +279,11 @@ docs/
 - Bed counts, category breakdowns, and freshness are computed at read time from `beds` and `bed_status_history`; snapshots are generated only when explicitly requested by a network administrator.
 - Referral documents are stored privately under `storage/app/private/referral-documents/{referral_public_id}` and downloaded through an authorized controller action.
 - Audit records capture the actor, hospital context, subject, changed fields, IP address, and user agent.
+- Branding uses the Province of Bukidnon official seal (`public/images/bukidnon-seal.jpg`), with 64 px and 180 px PNG derivatives for the favicon and Apple touch icon.
+- Chat requires the Reverb server to be running (`php artisan reverb:start --host=0.0.0.0 --port=8080`). Broadcasts use `ShouldBroadcastNow`, so no queue worker is required for messaging. Open two accounts in separate browsers to exercise live delivery.
+- Chat edits and deletions broadcast `message.updated` / `message.deleted` to both participants. Delete events carry refreshed per-user and per-conversation unread counts so badges stay accurate without a page reload.
+- Chat policy: the UI warns users not to share patient names, medical record numbers, or other identifiable information. Direct messages are not part of the clinical record; use referral records and approved documents for patient coordination.
+- Security hardening: the demo-account panel is local-only (`BHN_SHOW_DEMO_ACCOUNTS`), API routes are limited to 120 requests/min, web mutations/exports use a 20/min limiter, chat mutations use 60/min, Sanctum tokens expire after `SANCTUM_EXPIRATION_MINUTES` (default 480), and responses include CSP, `X-Frame-Options`, `X-Content-Type-Options`, and `Referrer-Policy` headers. In production, set `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, and `SESSION_ENCRYPT=true`.
 - The `reservations:expire` command releases overdue holds. It is scheduled every five minutes:
 
 ```php

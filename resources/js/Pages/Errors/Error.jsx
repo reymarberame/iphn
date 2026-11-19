@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Compass, Gauge, HeartPulse, LockKeyhole, ServerCrash, TimerOff, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, Compass, Gauge, LockKeyhole, ServerCrash, TimerOff, TriangleAlert } from 'lucide-react';
 
 const STATUS_META = {
     403: {
@@ -60,8 +60,12 @@ export default function ErrorPage({ status = 500, message = null }) {
                 <header className="border-b border-ink-100 bg-white">
                     <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
                         <Link href={user ? '/' : '/login'} className="flex items-center gap-3">
-                            <span className="flex size-9 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100">
-                                <HeartPulse className="size-5" />
+                            <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-ink-100">
+                                <img
+                                    src="/images/bukidnon-seal.jpg"
+                                    alt="Province of Bukidnon official seal"
+                                    className="size-9 object-cover"
+                                />
                             </span>
                             <span>
                                 <span className="block font-display text-sm font-extrabold tracking-tight text-ink-950">BHN</span>

@@ -43,44 +43,14 @@ class AccessSeeder extends Seeder
                 'name' => 'Super Administrator',
                 'slug' => 'super_admin',
                 'scope_type' => 'network',
-                'description' => 'Full platform access, including settings and all network records.',
+                'description' => 'Full platform access across the hospital network.',
                 'permissions' => $all,
-            ],
-            [
-                'name' => 'Network Administrator',
-                'slug' => 'national_network_admin',
-                'scope_type' => 'network',
-                'description' => 'Manages the hospital network, users, and aggregate reports.',
-                'permissions' => [
-                    'hospitals.manage', 'hospitals.register', 'beds.view', 'referrals.view', 'transfers.view',
-                    'reports.view', 'reports.national', 'users.manage', 'audit.view', 'settings.manage',
-                ],
-            ],
-            [
-                'name' => 'Regional Administrator',
-                'slug' => 'regional_admin',
-                'scope_type' => 'region',
-                'description' => 'Administers hospitals and users within an assigned region.',
-                'permissions' => [
-                    'hospitals.manage', 'hospitals.register', 'beds.view', 'referrals.view', 'transfers.view',
-                    'reports.view', 'reports.national', 'users.manage', 'audit.view',
-                ],
-            ],
-            [
-                'name' => 'Provincial Administrator',
-                'slug' => 'provincial_admin',
-                'scope_type' => 'province',
-                'description' => 'Administers hospitals and users within an assigned province.',
-                'permissions' => [
-                    'hospitals.manage', 'beds.view', 'referrals.view', 'transfers.view',
-                    'reports.view', 'users.manage', 'audit.view',
-                ],
             ],
             [
                 'name' => 'Hospital Administrator',
                 'slug' => 'hospital_admin',
                 'scope_type' => 'hospital',
-                'description' => 'Manages a hospital profile, users, bed inventory, and referral coordination.',
+                'description' => 'Manages a hospital profile, users, bed inventory, referrals, and transfers.',
                 'permissions' => [
                     'hospitals.manage', 'beds.view', 'beds.update', 'beds.manage', 'beds.reserve',
                     'referrals.view', 'referrals.create', 'referrals.respond', 'transfers.view', 'transfers.manage',
@@ -95,28 +65,15 @@ class AccessSeeder extends Seeder
                 'permissions' => ['beds.view', 'beds.update', 'beds.manage', 'reports.view'],
             ],
             [
-                'name' => 'ER Staff',
-                'slug' => 'er_staff',
+                'name' => 'Hospital Staff',
+                'slug' => 'hospital_staff',
                 'scope_type' => 'hospital',
-                'description' => 'Reports emergency department bed availability.',
-                'permissions' => ['beds.view', 'beds.update'],
-            ],
-            [
-                'name' => 'Referral Coordinator',
-                'slug' => 'referral_coordinator',
-                'scope_type' => 'hospital',
-                'description' => 'Coordinates outgoing referrals and transfer logistics.',
+                'description' => 'Coordinates referrals and transfers, reports bed availability, and holds receiving beds.',
                 'permissions' => [
-                    'beds.view', 'beds.reserve', 'referrals.view', 'referrals.create', 'referrals.respond',
+                    'beds.view', 'beds.update', 'beds.reserve',
+                    'referrals.view', 'referrals.create', 'referrals.respond',
                     'transfers.view', 'transfers.manage', 'reports.view',
                 ],
-            ],
-            [
-                'name' => 'Admission Staff',
-                'slug' => 'admission_staff',
-                'scope_type' => 'hospital',
-                'description' => 'Receives referrals and holds beds for accepted patients.',
-                'permissions' => ['beds.view', 'beds.reserve', 'referrals.view', 'referrals.respond', 'transfers.view'],
             ],
         ];
 

@@ -94,6 +94,8 @@ Response `data`:
 
 Failed logins return `401` and are recorded in `login_logs`.
 
+Tokens expire after `SANCTUM_EXPIRATION_MINUTES` (default `480` minutes). Login is limited to 10 attempts/min; forgot-password and reset-password are limited to 5/min. Authenticated API routes share a 120 requests/min limiter per user/IP.
+
 ### `POST /auth/forgot-password`
 
 Body: `{ "email": "user@example.test" }`. Always returns success to avoid account enumeration. Sends a reset link when an active account matches.
@@ -345,12 +347,13 @@ curl -s -X PATCH http://localhost:8000/api/v1/beds/42/status \
   -H "Accept: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"status":"occupied","reason":"Patient admitted","expected_updated_at":"2026-11-17T06:30:00+00:00"}'
+  -d '{"status":"occupied","reason":"Patient admitted","expected_updated_at":"2026-11-17T14:30:00+08:00"}'
 ```
 
 ## Notes
 
-- All timestamps in responses are ISO-8601 UTC strings. Display them in Asia/Manila on the client.
+- All timestamps in responses are ISO-8601 strings in the application timezone (`Asia/Manila`, offset `+08:00`). Display them in Asia/Manila on the client.
+- Authenticated API routes are limited to 120 requests/min per user/IP; excess requests return `429` with `X-RateLimit-*` headers.
 - List endpoints are paginated; `per_page` is bounded to 1–100 where supported.
 - Hospital/resource IDs are numeric. Referrals also expose a ULID `public_id`, used for private document folders.
 - Bed updates and reservations use database transactions and row locks; stale writes return `409`, workflow violations return `422`.

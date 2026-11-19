@@ -28,9 +28,9 @@ class HospitalIsolationTest extends TestCase
         $receiving = $this->hospital();
         $outsider = $this->hospital();
 
-        $creator = $this->user('referral_coordinator', $referring);
-        $receiver = $this->user('admission_staff', $receiving);
-        $stranger = $this->user('referral_coordinator', $outsider);
+        $creator = $this->user('hospital_staff', $referring);
+        $receiver = $this->user('hospital_staff', $receiving);
+        $stranger = $this->user('hospital_staff', $outsider);
 
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_SUBMITTED);
 
@@ -54,15 +54,15 @@ class HospitalIsolationTest extends TestCase
             ->assertOk()
             ->assertJsonCount(0, 'data');
 
-        $this->assertTrue($receiver->hasRole('admission_staff'));
+        $this->assertTrue($receiver->hasRole('hospital_staff'));
     }
 
-    public function test_network_administrator_without_membership_cannot_read_patient_linked_records(): void
+    public function test_network_scoped_account_without_membership_cannot_read_patient_linked_records(): void
     {
         $referring = $this->hospital();
         $receiving = $this->hospital();
-        $creator = $this->user('referral_coordinator', $referring);
-        $admin = $this->user('national_network_admin');
+        $creator = $this->user('hospital_staff', $referring);
+        $admin = $this->user('super_admin');
 
         $referral = $this->referral($referring, $receiving, $creator, Referral::STATUS_SUBMITTED);
         TransferRecord::query()->create([
@@ -77,22 +77,22 @@ class HospitalIsolationTest extends TestCase
         $this->actingAs($admin)->getJson('/api/v1/referrals')->assertForbidden();
         $this->actingAs($admin)->getJson('/api/v1/transfers')->assertForbidden();
 
-        // Aggregate reporting remains available to the network administrator.
+        // Aggregate reporting remains available to the network-scoped account.
         $this->actingAs($admin)->get('/reports')->assertOk();
         $this->actingAs($admin)->getJson('/api/v1/reports/overview')->assertOk();
     }
 
-    public function test_network_administrator_membership_does_not_expand_patient_linked_scope(): void
+    public function test_network_role_membership_does_not_expand_patient_linked_scope(): void
     {
         $home = $this->hospital();
         $otherReferrer = $this->hospital();
         $otherReceiver = $this->hospital();
 
-        $admin = $this->user('national_network_admin');
+        $admin = $this->user('super_admin');
         $this->attachMembership($admin, $home, Role::query()->where('slug', 'hospital_admin')->firstOrFail());
 
-        $homeCreator = $this->user('referral_coordinator', $home);
-        $outsideCreator = $this->user('referral_coordinator', $otherReferrer);
+        $homeCreator = $this->user('hospital_staff', $home);
+        $outsideCreator = $this->user('hospital_staff', $otherReferrer);
 
         $visible = $this->referral($home, $otherReceiver, $homeCreator, Referral::STATUS_SUBMITTED);
         $hidden = $this->referral($otherReferrer, $otherReceiver, $outsideCreator, Referral::STATUS_SUBMITTED);
@@ -162,8 +162,8 @@ class HospitalIsolationTest extends TestCase
         $otherA = $this->hospital();
         $otherB = $this->hospital();
 
-        $homeUser = $this->user('referral_coordinator', $home);
-        $otherUser = $this->user('referral_coordinator', $otherA);
+        $homeUser = $this->user('hospital_staff', $home);
+        $otherUser = $this->user('hospital_staff', $otherA);
 
         $visibleReferral = $this->referral($home, $partner, $homeUser, Referral::STATUS_TRANSFER_SCHEDULED);
         $hiddenReferral = $this->referral($otherA, $otherB, $otherUser, Referral::STATUS_TRANSFER_SCHEDULED);

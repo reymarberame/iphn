@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { BedDouble, CircleCheck, HeartPulse, MapPinned, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { BedDouble, CircleCheck, MapPinned, ShieldCheck, TriangleAlert } from 'lucide-react';
 
 const highlights = [
     {
@@ -41,8 +41,12 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
 
                 <div className="relative z-10 p-10 xl:p-14">
                     <Link href="/" className="inline-flex items-center gap-3">
-                        <span className="flex size-11 items-center justify-center rounded-2xl bg-brand-500/15 ring-1 ring-brand-400/30">
-                            <HeartPulse className="size-6 text-brand-300" />
+                        <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-white/20">
+                            <img
+                                src="/images/bukidnon-seal.jpg"
+                                alt="Province of Bukidnon official seal"
+                                className="size-11 object-cover"
+                            />
                         </span>
                         <span>
                             <span className="block font-display text-lg font-extrabold tracking-tight">BHN</span>
@@ -89,8 +93,12 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
             <main className="flex min-h-screen flex-col justify-center px-4 py-10 sm:px-8 lg:px-12 xl:px-20">
                 <div className="mx-auto w-full max-w-md">
                     <div className="mb-8 flex items-center gap-3 lg:hidden">
-                        <span className="flex size-10 items-center justify-center rounded-xl bg-brand-700 text-white shadow-sm">
-                            <HeartPulse className="size-5" />
+                        <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-ink-100">
+                            <img
+                                src="/images/bukidnon-seal.jpg"
+                                alt="Province of Bukidnon official seal"
+                                className="size-10 object-cover"
+                            />
                         </span>
                         <div>
                             <p className="font-display text-base font-extrabold text-ink-950">BHN</p>

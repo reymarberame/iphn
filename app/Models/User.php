@@ -58,6 +58,18 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+            ->withPivot(['last_read_message_id', 'last_read_at'])
+            ->withTimestamps();
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
     public function referralsCreated(): HasMany
     {
         return $this->hasMany(Referral::class, 'created_by');

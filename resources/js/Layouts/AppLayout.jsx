@@ -9,11 +9,11 @@ import {
     ChevronDown,
     ClipboardList,
     FileBarChart,
-    HeartPulse,
     Info,
     LayoutDashboard,
     LogOut,
     Menu,
+    MessageSquare,
     ShieldCheck,
     SlidersHorizontal,
     TriangleAlert,
@@ -21,6 +21,8 @@ import {
     X,
 } from 'lucide-react';
 import { Avatar, Badge } from '../components/ui';
+import { getActiveConversation } from '../lib/chat';
+import { getEcho } from '../lib/echo';
 import { classNames, formatDateTime, relativeTime } from '../lib/utils';
 
 function buildNavigation(user) {
@@ -34,6 +36,10 @@ function buildNavigation(user) {
                 { label: 'Dashboard', href: '/', section: 'Overview', icon: LayoutDashboard },
                 { label: 'Hospital directory', href: '/hospitals', section: 'Network', icon: Building2 },
             ],
+        },
+        {
+            label: 'Communication',
+            items: [{ label: 'Messages', href: '/messages', section: 'Communication', icon: MessageSquare }],
         },
     ];
 
@@ -116,12 +122,13 @@ function Toast({ toast, onDismiss }) {
 
 export default function AppLayout({ children }) {
     const page = usePage();
-    const { auth, flash, notifications, settings } = page.props;
+    const { auth, chat, flash, notifications, settings } = page.props;
     const user = auth?.user;
     const url = page.url;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [notificationOpen, setNotificationOpen] = useState(false);
     const [userOpen, setUserOpen] = useState(false);
+    const [chatUnread, setChatUnread] = useState(chat?.unread_count ?? 0);
     const [toasts, setToasts] = useState([]);
     const notificationRef = useRef(null);
     const userRef = useRef(null);
@@ -168,6 +175,68 @@ export default function AppLayout({ children }) {
         return () => document.removeEventListener('mousedown', onClick);
     }, []);
 
+    useEffect(() => {
+        setChatUnread(chat?.unread_count ?? 0);
+    }, [chat?.unread_count]);
+
+    useEffect(() => {
+        const onUnread = (event) => setChatUnread(Math.max(0, Number(event.detail?.count) || 0));
+
+        window.addEventListener('chat:unread', onUnread);
+        return () => window.removeEventListener('chat:unread', onUnread);
+    }, []);
+
+    useEffect(() => {
+        const echo = getEcho();
+
+        if (!echo || !user?.id) return undefined;
+
+        const channel = echo.private(`user.${user.id}`);
+
+        const handleMessage = (event) => {
+            window.dispatchEvent(new CustomEvent('chat:message', { detail: event }));
+
+            const isOpen =
+                window.location.pathname.startsWith('/messages')
+                && getActiveConversation() === Number(event.conversation_id);
+
+            if (event.sender?.id !== user.id && !isOpen) {
+                setChatUnread((count) => count + 1);
+            }
+        };
+
+        const handleRead = (event) => {
+            window.dispatchEvent(new CustomEvent('chat:read', { detail: event }));
+        };
+
+        const handleMessageUpdated = (event) => {
+            window.dispatchEvent(new CustomEvent('chat:message-updated', { detail: event }));
+        };
+
+        const handleMessageDeleted = (event) => {
+            window.dispatchEvent(new CustomEvent('chat:message-deleted', { detail: event }));
+
+            const count = event.unread_counts?.[user.id];
+
+            if (count !== undefined) {
+                setChatUnread(Math.max(0, Number(count) || 0));
+            }
+        };
+
+        channel.listen('.message.sent', handleMessage);
+        channel.listen('.conversation.read', handleRead);
+        channel.listen('.message.updated', handleMessageUpdated);
+        channel.listen('.message.deleted', handleMessageDeleted);
+
+        return () => {
+            channel.stopListening('.message.sent', handleMessage);
+            channel.stopListening('.conversation.read', handleRead);
+            channel.stopListening('.message.updated', handleMessageUpdated);
+            channel.stopListening('.message.deleted', handleMessageDeleted);
+            echo.leave(`user.${user.id}`);
+        };
+    }, [user?.id]);
+
     const dismissToast = (id) => setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id));
 
     const markAllRead = () => {
@@ -194,8 +263,12 @@ export default function AppLayout({ children }) {
         <div className="flex h-full flex-col bg-ink-950 text-white">
             <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-white/10 px-5">
                 <Link href="/" className="flex min-w-0 items-center gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 ring-1 ring-brand-400/30">
-                        <HeartPulse className="size-5 text-brand-300" />
+                    <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-white/20">
+                        <img
+                            src="/images/bukidnon-seal.jpg"
+                            alt="Province of Bukidnon official seal"
+                            className="size-10 object-cover"
+                        />
                     </span>
                     <span className="min-w-0">
                         <span className="block truncate font-display text-sm font-extrabold tracking-tight">BHN</span>
@@ -241,6 +314,11 @@ export default function AppLayout({ children }) {
                                         >
                                             <item.icon className={classNames('size-4.5 shrink-0', active ? 'text-brand-300' : 'text-ink-500')} />
                                             <span className="truncate">{item.label}</span>
+                                            {item.href === '/messages' && chatUnread > 0 && (
+                                                <span className="ml-auto flex min-w-5 items-center justify-center rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                                    {chatUnread > 99 ? '99+' : chatUnread}
+                                                </span>
+                                            )}
                                         </Link>
                                     </li>
                                 );
@@ -314,6 +392,19 @@ export default function AppLayout({ children }) {
                             <Badge tone={user?.is_network_user ? 'brand' : 'teal'} className="hidden sm:inline-flex">
                                 {user?.is_network_user ? 'Network scope' : 'Hospital scope'}
                             </Badge>
+
+                            <Link
+                                href="/messages"
+                                className="btn-icon relative"
+                                aria-label={`Messages${chatUnread > 0 ? `, ${chatUnread} unread` : ''}`}
+                            >
+                                <MessageSquare className="size-5" />
+                                {chatUnread > 0 && (
+                                    <span className="absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full bg-brand-600 px-1 text-[9px] font-bold text-white">
+                                        {chatUnread > 9 ? '9+' : chatUnread}
+                                    </span>
+                                )}
+                            </Link>
 
                             <div className="relative" ref={notificationRef}>
                                 <button
