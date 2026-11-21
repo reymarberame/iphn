@@ -55,6 +55,7 @@ class SupabaseBroadcaster extends Broadcaster
                 'topic' => RealtimeTopics::forUser($userId),
                 'event' => $event,
                 'payload' => $payload,
+                'private' => false,
             ];
         }
 
