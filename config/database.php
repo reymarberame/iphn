@@ -95,7 +95,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => env('DB_SEARCH_PATH', 'public'),
             'sslmode' => env('DB_SSLMODE', 'prefer'),
-            'persistent' => env('DB_PERSISTENT', false),
+            'options' => array_filter([
+                PDO::ATTR_PERSISTENT => filter_var(env('DB_PERSISTENT', false), FILTER_VALIDATE_BOOLEAN),
+            ]),
         ],
 
         // One-time source connection for `php artisan db:copy-to-postgres`.
