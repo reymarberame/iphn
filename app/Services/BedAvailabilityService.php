@@ -100,15 +100,15 @@ class BedAvailabilityService
         return $counts;
     }
 
-    public function hospitalSummary(Hospital|int $hospital): array
+    public function hospitalSummary(Hospital|int $hospital, ?array $counts = null, ?BedStatusHistory $latest = null): array
     {
         $hospital = $hospital instanceof Hospital
             ? $hospital
             : Hospital::query()->with('municipality.province.region')->findOrFail($hospital);
 
-        $counts = $this->statusCounts($hospital->id);
+        $counts ??= $this->statusCounts($hospital->id);
 
-        $latest = BedStatusHistory::query()
+        $latest ??= BedStatusHistory::query()
             ->where('hospital_id', $hospital->id)
             ->with('changer:id,name')
             ->latest('changed_at')
@@ -246,7 +246,15 @@ class BedAvailabilityService
 
         $counts = $this->aggregateStatusCounts($ids);
         $categoryBreakdown = $this->aggregateCategoryBreakdown($ids, $filters['category'] ?? null);
-        $summaries = $hospitals->map(fn (Hospital $hospital) => $this->hospitalSummary($hospital))->values();
+        $countsByHospital = $this->statusCountsByHospital($ids);
+        $latestByHospital = $this->latestHistoryByHospital($ids);
+        $summaries = $hospitals
+            ->map(fn (Hospital $hospital) => $this->hospitalSummary(
+                $hospital,
+                $countsByHospital[$hospital->id] ?? null,
+                $latestByHospital[$hospital->id] ?? null,
+            ))
+            ->values();
         $freshnessCounts = $summaries->countBy('freshness');
 
         $erAvailable = Bed::query()
@@ -393,6 +401,92 @@ class BedAvailabilityService
             'available_beds' => $counts['available'],
             'captured_at' => now(),
         ]);
+    }
+
+    /**
+     * Bed status counts keyed by hospital id, using two queries for the whole
+     * network instead of one query per hospital.
+     *
+     * @param  list<int>  $hospitalIds
+     * @return array<int, array<string, int>>
+     */
+    public function statusCountsByHospital(array $hospitalIds): array
+    {
+        $empty = [
+            'total' => 0, 'available' => 0, 'occupied' => 0, 'reserved' => 0,
+            'cleaning' => 0, 'out_of_service' => 0, 'operational' => 0,
+        ];
+
+        $result = [];
+
+        foreach ($hospitalIds as $id) {
+            $result[(int) $id] = $empty;
+        }
+
+        if ($hospitalIds === []) {
+            return $result;
+        }
+
+        $rows = Bed::query()
+            ->whereIn('hospital_id', $hospitalIds)
+            ->where('active', true)
+            ->selectRaw('hospital_id, status, count(*) as aggregate')
+            ->groupBy('hospital_id', 'status')
+            ->get();
+
+        foreach ($rows->groupBy('hospital_id') as $hospitalId => $group) {
+            $statuses = $group->pluck('aggregate', 'status');
+            $total = (int) $statuses->sum();
+            $outOfService = (int) ($statuses[Bed::STATUS_OUT_OF_SERVICE] ?? 0);
+
+            $result[(int) $hospitalId] = [
+                'total' => $total,
+                'available' => (int) ($statuses[Bed::STATUS_AVAILABLE] ?? 0),
+                'occupied' => (int) ($statuses[Bed::STATUS_OCCUPIED] ?? 0),
+                'reserved' => (int) ($statuses[Bed::STATUS_RESERVED] ?? 0),
+                'cleaning' => (int) ($statuses[Bed::STATUS_CLEANING] ?? 0),
+                'out_of_service' => $outOfService,
+                'operational' => $total - $outOfService,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Most recent bed status change per hospital, loaded in two queries for
+     * the whole network rather than one per hospital.
+     *
+     * @param  list<int>  $hospitalIds
+     * @return array<int, BedStatusHistory|null>
+     */
+    public function latestHistoryByHospital(array $hospitalIds): array
+    {
+        $result = [];
+
+        foreach ($hospitalIds as $id) {
+            $result[(int) $id] = null;
+        }
+
+        if ($hospitalIds === []) {
+            return $result;
+        }
+
+        $rows = BedStatusHistory::query()
+            ->whereIn('hospital_id', $hospitalIds)
+            ->with('changer:id,name')
+            ->orderByDesc('changed_at')
+            ->get();
+
+        foreach ($rows as $row) {
+            $hospitalId = (int) $row->hospital_id;
+
+            if ($result[$hospitalId] === null) {
+                $result[$hospitalId] = $row;
+            }
+        }
+
+        return $result;
     }
 
     public function aggregateStatusCounts(array $hospitalIds): array
