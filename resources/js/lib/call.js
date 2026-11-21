@@ -1,5 +1,19 @@
 const AUDIO_ONLY = { audio: true, video: false };
 
+function withTerminatingNewline(description) {
+    if (!description) return description;
+
+    const copy = typeof description === 'string'
+        ? { sdp: description }
+        : { ...description };
+
+    if (typeof copy.sdp === 'string' && !/\r?\n$/.test(copy.sdp)) {
+        copy.sdp += '\r\n';
+    }
+
+    return copy;
+}
+
 function friendlyMediaError(error) {
     const name = error?.name || '';
 
@@ -218,7 +232,7 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
             const connection = createPeer();
             localStream.getTracks().forEach((track) => connection.addTrack(track, localStream));
 
-            await connection.setRemoteDescription(offer);
+            await connection.setRemoteDescription(withTerminatingNewline(offer));
             await flushCandidates();
 
             const answer = await connection.createAnswer();
@@ -288,7 +302,7 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
         }
 
         if (type === 'answer' && state.status === 'outgoing' && pc && payload.data?.sdp) {
-            await pc.setRemoteDescription(payload.data.sdp);
+            await pc.setRemoteDescription(withTerminatingNewline(payload.data.sdp));
             await flushCandidates();
             setState({ status: 'active', video: Boolean(payload.data?.video) });
             startTimer(callId);

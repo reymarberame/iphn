@@ -33,6 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 | Request::HEADER_X_FORWARDED_PROTO,
         );
 
+        // WebRTC SDP must keep its trailing CRLF or Chrome rejects it.
+        $middleware->trimStrings(['data.sdp']);
+
         $middleware->append(SecurityHeaders::class);
         $middleware->throttleApi();
 
