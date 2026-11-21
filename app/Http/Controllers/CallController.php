@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class CallController extends Controller
@@ -44,19 +45,33 @@ class CallController extends Controller
 
         $data = $validated['data'] ?? [];
 
-        event(new CallSignal(
-            toUserId: $recipient->id,
-            fromUserId: $sender->id,
-            fromName: $sender->name,
-            conversationId: $validated['conversation_id'],
-            callId: $validated['call_id'],
-            type: $validated['type'],
-            data: [
-                'sdp' => is_string($data['sdp'] ?? null) ? $data['sdp'] : null,
-                'candidate' => is_array($data['candidate'] ?? null) ? $data['candidate'] : null,
-                'video' => (bool) ($data['video'] ?? false),
-            ],
-        ));
+        // WebRTC descriptions are objects ({type, sdp}), not plain strings.
+        $sdp = $data['sdp'] ?? null;
+
+        try {
+            event(new CallSignal(
+                toUserId: $recipient->id,
+                fromUserId: $sender->id,
+                fromName: $sender->name,
+                conversationId: $validated['conversation_id'],
+                callId: $validated['call_id'],
+                type: $validated['type'],
+                data: [
+                    'sdp' => is_string($sdp) || is_array($sdp) ? $sdp : null,
+                    'candidate' => is_array($data['candidate'] ?? null) ? $data['candidate'] : null,
+                    'video' => (bool) ($data['video'] ?? false),
+                ],
+            ));
+        } catch (\Throwable $exception) {
+            Log::error('Call signal broadcast failed', [
+                'from' => $sender->id,
+                'to' => $recipient->id,
+                'type' => $validated['type'],
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return response()->json(['ok' => false, 'message' => 'Signal delivery failed.'], 502);
+        }
 
         return response()->json(['ok' => true]);
     }

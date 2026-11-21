@@ -105,7 +105,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/messages', [ChatController::class, 'index'])->name('messages.index');
     Route::post('/messages', [ChatController::class, 'storeConversation'])->middleware('throttle:sensitive')->name('messages.store');
     Route::get('/messages/{conversation}', [ChatController::class, 'show'])->name('messages.show');
-    Route::post('/calls/signal', [CallController::class, 'signal'])->middleware('throttle:chat')->name('calls.signal');
+    // WebRTC can emit several ICE candidates per second; the 60/min chat
+    // limiter would reject a single call. Authorization is handled in the
+    // controller (shared conversation + active recipient).
+    Route::post('/calls/signal', [CallController::class, 'signal'])->name('calls.signal');
     Route::middleware('throttle:chat')->group(function () {
         Route::post('/messages/{conversation}/send', [ChatController::class, 'storeMessage'])->name('messages.send');
         Route::post('/messages/{conversation}/read', [ChatController::class, 'markRead'])->name('messages.read');

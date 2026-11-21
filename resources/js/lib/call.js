@@ -35,7 +35,13 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
         if (onState) onState(state);
     };
 
+    let lastError = 0;
+
     const reportError = (message) => {
+        const now = Date.now();
+        // ICE candidates can fail in bursts; don't flood the user with toasts.
+        if (now - lastError < 4000) return;
+        lastError = now;
         if (onError) onError(message);
     };
 
