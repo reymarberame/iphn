@@ -1,5 +1,9 @@
 /vendor
 /node_modules
+/package.json
+/package-lock.json
+/vite.config.js
+/.npmrc
 /.env
 /.env.*
 !.env.example

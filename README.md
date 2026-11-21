@@ -64,7 +64,7 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 | Build | Vite 6 |
 | Database | Supabase Postgres (MySQL remains supported for local development) |
 | Storage | Supabase Storage (S3 protocol) in production; private local disk in development |
-| Hosting | Railway (Docker) — Vercel cannot run this Laravel backend |
+| Hosting | Vercel (Laravel via `vercel-php` serverless function) + Railway (Reverb + scheduler) |
 | Auth | Session-based web login + Sanctum personal access tokens for API |
 | Realtime | Laravel Reverb 1, Laravel Echo, pusher-js |
 | Tests | PHPUnit 11 / Laravel test runner |
@@ -173,18 +173,31 @@ The seeded environment contains Region X, Bukidnon, all 22 Bukidnon LGUs, eight 
 
 > **Demo data notice.** Facility names, profiles, contact details, bed layouts, and referral records are representative demonstration data for the Bukidnon deployment. Replace them with official facility records before production use.
 
-## Supabase + Railway deployment
+## Vercel + Supabase + Railway deployment
 
-Vercel cannot run this Laravel application: it needs persistent PHP processes, Apache, WebSocket connections, and scheduled commands. The production path in this repository is **Railway (Docker) + Supabase Postgres + Supabase Storage**.
+The HTTP application runs on **Vercel** through `api/index.php` and the community `vercel-php@0.8.0` runtime; `vercel.json` serves compiled assets and routes every other request to Laravel. Long-running processes still live on **Railway** (one Docker service running Reverb and `schedule:work`), and data lives in **Supabase Postgres/Storage**.
 
-### 1. Supabase project
+Browser Reverb settings are shared at runtime and point at the Railway HTTPS domain (`REVERB_CLIENT_HOST`, `REVERB_CLIENT_PORT=443`, `REVERB_CLIENT_SCHEME=https`), while server-side broadcasting uses `REVERB_HOST` with the same public host. Railway's Apache proxies both `/app` (WebSockets) and `/apps` (Pusher HTTP events) to Reverb.
+
+### Vercel
+
+1. Create a Vercel project with framework preset "Other" and no build/install/output settings (the PHP runtime installs Composer dependencies itself). Keep `package.json`, `package-lock.json`, and `vite.config.js` in `.vercelignore` so Vercel does not auto-detect Vite.
+2. Build assets locally (`npm run build`) before deploying so `public/build` is uploaded.
+3. Set the production environment variables from `.env.example`, including `APP_URL=https://<your-vercel-domain>` and the `REVERB_*`, `DB_*`, and `SUPABASE_*` blocks.
+4. Deploy with `vercel --prod --yes`.
+
+### Railway (Reverb + scheduler only)
+
+The Docker image and `railway.toml` are still used for the always-on Reverb and scheduler service. Set the same `DB_*`, `SUPABASE_*`, and `REVERB_*` variables there, with `REVERB_SERVER_HOST=127.0.0.1`, `REVERB_SERVER_PORT=8081`, `REVERB_HOST=127.0.0.1`, and `REVERB_PORT=8081`. Deploy with `railway up --detach`.
+
+### Supabase project
 
 1. Create a project and copy the **Session Pooler** connection details (port `5432`). Avoid the transaction pooler for migrations and transactional workflows.
 2. Create a **private** Storage bucket (default name `bhn-storage`).
 3. Create **S3 access keys** under Project Settings → Storage → S3 access keys.
 4. Fill the `DB_*` and `SUPABASE_*` values from `.env.example`. Use `DB_SSLMODE=require`.
 
-### 2. Migrate schema and existing data
+### Migrate schema and existing data
 
 Run this from the machine that holds the current MySQL data. On Laragon, prefix PHP with `-d extension=pdo_pgsql`.
 
@@ -196,29 +209,6 @@ php artisan db:copy-to-postgres --fresh --documents
 The command copies business tables in foreign-key order, converts MySQL booleans and zero dates, resets Postgres sequences, uploads referral documents when `--documents` is passed, and verifies source/target row counts. Framework tables (`migrations`, `sessions`, `cache`, `jobs`, tokens) are rebuilt on the destination rather than copied.
 
 A final migration revokes `anon`/`authenticated` privileges on the `public` schema so Supabase's Data API cannot read application tables. Laravel connects as the table owner and is unaffected.
-
-### 3. Railway service
-
-1. Create a Railway project from this Git repository. `railway.toml` selects the Dockerfile and the `/up` health check.
-2. Add environment variables: `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://<railway-domain>`, the database `DB_*` block, the storage `SUPABASE_*` block, `REFERRAL_DOCUMENTS_DISK=supabase`, `SESSION_SECURE_COOKIE=true`, `SESSION_ENCRYPT=true`, and Reverb credentials.
-3. Generate a public domain and deploy. The entrypoint runs migrations (unless `RUN_MIGRATIONS=false`), caches config/routes/views, then Supervisor starts Apache on `$PORT`, Reverb on `127.0.0.1:8081`, and `schedule:work`. Apache proxies `/app` to Reverb, so chat uses the same HTTPS domain.
-
-Production Reverb values:
-
-```dotenv
-REVERB_SERVER_HOST=127.0.0.1
-REVERB_SERVER_PORT=8081
-REVERB_HOST=127.0.0.1
-REVERB_PORT=8081
-REVERB_SCHEME=http
-REVERB_CLIENT_HOST=
-REVERB_CLIENT_PORT=
-REVERB_CLIENT_SCHEME=
-```
-
-Leave the client values blank: the Inertia middleware falls back to the incoming public host and HTTPS scheme. The browser then connects to `wss://<railway-domain>/app/...`, which Apache proxies to Reverb.
-
-> Railway runs one application replica by default. If you scale horizontally, disable `RUN_MIGRATIONS` on boot, move sessions/cache to a shared store, and enable Reverb scaling.
 
 ## Seeded hospital network
 
