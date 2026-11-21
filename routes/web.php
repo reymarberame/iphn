@@ -15,7 +15,20 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransferController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/cron/expire-reservations', function (Request $request) {
+    $secret = (string) config('bhn.cron_secret');
+    $token = $request->bearerToken() ?: $request->query('token');
+
+    abort_unless($secret !== '' && hash_equals($secret, (string) $token), 401);
+
+    Artisan::call('reservations:expire');
+
+    return response('OK', 200)->header('Content-Type', 'text/plain');
+})->name('cron.expire-reservations');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');

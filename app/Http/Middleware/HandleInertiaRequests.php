@@ -9,6 +9,7 @@ use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\ChatService;
 use App\Services\HospitalAccessService;
+use App\Support\RealtimeTopics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -44,29 +45,11 @@ class HandleInertiaRequests extends Middleware
             'chat' => $user ? fn () => ['unread_count' => $this->chat->unreadCount($user)] : null,
             'reference' => $user ? fn () => $this->referenceData() : null,
             'settings' => fn () => $this->settings($user !== null),
-            'reverb' => fn () => $this->reverb($request),
-        ];
-    }
-
-    /**
-     * Browser WebSocket settings for Reverb. The host falls back to the
-     * current request so the app keeps working behind a single HTTPS proxy.
-     */
-    private function reverb(Request $request): ?array
-    {
-        $key = config('bhn.reverb.key');
-
-        if (blank($key)) {
-            return null;
-        }
-
-        $scheme = config('bhn.reverb.scheme') ?: $request->getScheme();
-
-        return [
-            'key' => $key,
-            'host' => config('bhn.reverb.host') ?: $request->getHost(),
-            'port' => (int) (config('bhn.reverb.port') ?: ($scheme === 'https' ? 443 : 80)),
-            'scheme' => $scheme,
+            'realtime' => fn () => $user ? [
+                'url' => config('bhn.realtime.url'),
+                'key' => config('bhn.realtime.publishable_key'),
+                'topic' => RealtimeTopics::forUser($user->id),
+            ] : null,
         ];
     }
 

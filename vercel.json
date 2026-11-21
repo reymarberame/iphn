@@ -8,6 +8,13 @@
       "maxDuration": 30
     }
   },
+  "schedules": {
+    "expire-reservations": {
+      "schedule": "*/15 * * * *",
+      "path": "/cron/expire-reservations",
+      "requestMethod": "GET"
+    }
+  },
   "routes": [
     { "src": "/", "dest": "/api/index.php" },
     { "src": "/index.php", "dest": "/api/index.php" },

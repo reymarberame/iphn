@@ -30,13 +30,14 @@ return [
     // Supabase Storage through the S3-compatible disk defined in filesystems.php.
     'referral_documents_disk' => env('REFERRAL_DOCUMENTS_DISK', 'local'),
 
-    // Browser-side Reverb settings shared through Inertia. Leave the client
-    // host/port/scheme empty in production to reuse the request host (which
-    // also works behind Railway's HTTPS proxy).
-    'reverb' => [
-        'key' => env('REVERB_APP_KEY'),
-        'host' => env('REVERB_CLIENT_HOST'),
-        'port' => env('REVERB_CLIENT_PORT'),
-        'scheme' => env('REVERB_CLIENT_SCHEME'),
+    // Supabase Realtime replaces the long-running Reverb server. Browser
+    // clients only receive the publishable key and an unguessable topic.
+    'realtime' => [
+        'url' => env('SUPABASE_URL', 'https://aobqazeyvwwvqacfewla.supabase.co'),
+        'publishable_key' => env('SUPABASE_PUBLISHABLE_KEY'),
+        'secret_key' => env('SUPABASE_SECRET_KEY'),
     ],
+
+    // Shared secret for the Vercel Cron endpoint that expires bed holds.
+    'cron_secret' => env('CRON_SECRET'),
 ];

@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Avatar, Badge } from '../components/ui';
 import { getActiveConversation } from '../lib/chat';
-import { getEcho } from '../lib/echo';
+import { subscribeToChat } from '../lib/supabaseChat';
 import { classNames, formatDateTime, relativeTime } from '../lib/utils';
 
 function buildNavigation(user) {
@@ -122,7 +122,7 @@ function Toast({ toast, onDismiss }) {
 
 export default function AppLayout({ children }) {
     const page = usePage();
-    const { auth, chat, flash, notifications, settings, reverb } = page.props;
+    const { auth, chat, flash, notifications, settings, realtime } = page.props;
     const user = auth?.user;
     const url = page.url;
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -187,11 +187,9 @@ export default function AppLayout({ children }) {
     }, []);
 
     useEffect(() => {
-        const echo = getEcho(reverb);
-
-        if (!echo || !user?.id) return undefined;
-
-        const channel = echo.private(`user.${user.id}`);
+        if (!user?.id || !realtime?.topic) {
+            return undefined;
+        }
 
         const handleMessage = (event) => {
             window.dispatchEvent(new CustomEvent('chat:message', { detail: event }));
@@ -223,19 +221,16 @@ export default function AppLayout({ children }) {
             }
         };
 
-        channel.listen('.message.sent', handleMessage);
-        channel.listen('.conversation.read', handleRead);
-        channel.listen('.message.updated', handleMessageUpdated);
-        channel.listen('.message.deleted', handleMessageDeleted);
-
-        return () => {
-            channel.stopListening('.message.sent', handleMessage);
-            channel.stopListening('.conversation.read', handleRead);
-            channel.stopListening('.message.updated', handleMessageUpdated);
-            channel.stopListening('.message.deleted', handleMessageDeleted);
-            echo.leave(`user.${user.id}`);
-        };
-    }, [user?.id]);
+        return subscribeToChat({
+            ...realtime,
+            handlers: {
+                'message.sent': handleMessage,
+                'conversation.read': handleRead,
+                'message.updated': handleMessageUpdated,
+                'message.deleted': handleMessageDeleted,
+            },
+        });
+    }, [user?.id, realtime?.topic]);
 
     const dismissToast = (id) => setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id));
 

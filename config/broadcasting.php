@@ -30,6 +30,10 @@ return [
 
     'connections' => [
 
+        'supabase' => [
+            'driver' => 'supabase',
+        ],
+
         'reverb' => [
             'driver' => 'reverb',
             'key' => env('REVERB_APP_KEY'),
