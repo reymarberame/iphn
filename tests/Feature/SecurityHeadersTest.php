@@ -18,13 +18,7 @@ class SecurityHeadersTest extends TestCase
 
     public function test_content_security_policy_is_sent_outside_local(): void
     {
-        config(['broadcasting.connections.reverb' => [
-            'options' => [
-                'scheme' => 'https',
-                'host' => 'ws.bhn.test',
-                'port' => 443,
-            ],
-        ]]);
+        config(['bhn.realtime.url' => 'https://ws.bhn.test']);
 
         $response = $this->get('/login')->assertOk();
         $policy = $response->headers->get('Content-Security-Policy');

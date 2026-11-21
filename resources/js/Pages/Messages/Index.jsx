@@ -9,14 +9,17 @@ import {
     Loader2,
     MessageSquare,
     Pencil,
+    Phone,
     Plus,
     Send,
+    Video,
     ShieldAlert,
     Trash2,
     X,
 } from 'lucide-react';
 import AppLayout from '../../Layouts/AppLayout';
 import { Avatar, Badge, Button, Card, EmptyState, InfoCallout, Modal, PageHeader, SearchInput } from '../../components/ui';
+import { getCallController } from '../../lib/callBus';
 import { setActiveConversation, dispatchChatUnread } from '../../lib/chat';
 import { classNames, formatDate, formatTime, relativeTime } from '../../lib/utils';
 
@@ -837,6 +840,26 @@ export default function MessagesIndex({
                                                     .join(' · ')}
                                             </p>
                                         </div>
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary btn-icon"
+                                            aria-label="Start voice call"
+                                            title="Voice call"
+                                            disabled={!activeOther?.id}
+                                            onClick={() => activeOther?.id && getCallController()?.startCall(activeOther, active.id, false)}
+                                        >
+                                            <Phone className="size-4" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary btn-icon"
+                                            aria-label="Start video call"
+                                            title="Video call"
+                                            disabled={!activeOther?.id}
+                                            onClick={() => activeOther?.id && getCallController()?.startCall(activeOther, active.id, true)}
+                                        >
+                                            <Video className="size-4" />
+                                        </button>
                                         <Badge tone="slate" className="hidden sm:inline-flex">
                                             Direct message
                                         </Badge>

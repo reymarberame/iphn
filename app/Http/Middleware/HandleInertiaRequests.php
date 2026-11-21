@@ -45,6 +45,9 @@ class HandleInertiaRequests extends Middleware
             'chat' => $user ? fn () => ['unread_count' => $this->chat->unreadCount($user)] : null,
             'reference' => $user ? fn () => $this->referenceData() : null,
             'settings' => fn () => $this->settings($user !== null),
+            'calls' => fn () => [
+                'ice_servers' => config('bhn.calls.ice_servers'),
+            ],
             'realtime' => fn () => $user ? [
                 'url' => config('bhn.realtime.url'),
                 'key' => config('bhn.realtime.publishable_key'),

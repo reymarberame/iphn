@@ -40,11 +40,8 @@ class SecurityHeaders
 
     private function contentSecurityPolicy(Response $response): string
     {
-        $reverb = config('broadcasting.connections.reverb.options', []);
-        $scheme = ($reverb['scheme'] ?? 'https') === 'https' ? 'wss' : 'ws';
-        $host = $reverb['host'] ?? parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
-        $port = isset($reverb['port']) ? (int) $reverb['port'] : null;
-        $websocket = $scheme.'://'.$host.($port && ! in_array($port, [80, 443], true) ? ':'.$port : '');
+        $realtimeHost = parse_url((string) config('bhn.realtime.url'), PHP_URL_HOST);
+        $websocket = $realtimeHost ? "wss://{$realtimeHost} https://{$realtimeHost}" : '';
 
         // Inertia renders the initial page payload as an inline JSON script.
         // Hash it so the strict script-src policy can allow exactly that block.

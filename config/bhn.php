@@ -40,4 +40,28 @@ return [
 
     // Shared secret for the Vercel Cron endpoint that expires bed holds.
     'cron_secret' => env('CRON_SECRET'),
+
+    // ICE servers for peer-to-peer voice/video calls. The public TURN relay is
+    // a best-effort fallback for restrictive networks; set TURN_* to use your
+    // own relay for production-grade reliability.
+    'calls' => [
+        'ice_servers' => [
+            ['urls' => 'stun:stun.l.google.com:19302'],
+            [
+                'urls' => 'turn:openrelay.metered.ca:80',
+                'username' => env('TURN_USERNAME', 'openrelayproject'),
+                'credential' => env('TURN_CREDENTIAL', 'openrelayproject'),
+            ],
+            [
+                'urls' => 'turn:openrelay.metered.ca:443',
+                'username' => env('TURN_USERNAME', 'openrelayproject'),
+                'credential' => env('TURN_CREDENTIAL', 'openrelayproject'),
+            ],
+            [
+                'urls' => 'turn:openrelay.metered.ca:443?transport=tcp',
+                'username' => env('TURN_USERNAME', 'openrelayproject'),
+                'credential' => env('TURN_CREDENTIAL', 'openrelayproject'),
+            ],
+        ],
+    ],
 ];

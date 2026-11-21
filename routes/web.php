@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BedBoardController;
+use App\Http\Controllers\CallController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HospitalController;
@@ -104,6 +105,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/messages', [ChatController::class, 'index'])->name('messages.index');
     Route::post('/messages', [ChatController::class, 'storeConversation'])->middleware('throttle:sensitive')->name('messages.store');
     Route::get('/messages/{conversation}', [ChatController::class, 'show'])->name('messages.show');
+    Route::post('/calls/signal', [CallController::class, 'signal'])->middleware('throttle:chat')->name('calls.signal');
     Route::middleware('throttle:chat')->group(function () {
         Route::post('/messages/{conversation}/send', [ChatController::class, 'storeMessage'])->name('messages.send');
         Route::post('/messages/{conversation}/read', [ChatController::class, 'markRead'])->name('messages.read');

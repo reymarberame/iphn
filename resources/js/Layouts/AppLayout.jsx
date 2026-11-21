@@ -21,6 +21,9 @@ import {
     X,
 } from 'lucide-react';
 import { Avatar, Badge } from '../components/ui';
+import CallOverlay from '../components/CallOverlay';
+import { setCallController } from '../lib/callBus';
+import { createCallController } from '../lib/call';
 import { getActiveConversation } from '../lib/chat';
 import { subscribeToChat } from '../lib/supabaseChat';
 import { classNames, formatDateTime, relativeTime } from '../lib/utils';
@@ -122,7 +125,7 @@ function Toast({ toast, onDismiss }) {
 
 export default function AppLayout({ children }) {
     const page = usePage();
-    const { auth, chat, flash, notifications, settings, realtime } = page.props;
+    const { auth, chat, flash, notifications, settings, realtime, calls } = page.props;
     const user = auth?.user;
     const url = page.url;
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -130,14 +133,42 @@ export default function AppLayout({ children }) {
     const [userOpen, setUserOpen] = useState(false);
     const [chatUnread, setChatUnread] = useState(chat?.unread_count ?? 0);
     const [toasts, setToasts] = useState([]);
+    const [callState, setCallState] = useState({ status: 'idle' });
+    const [callMedia, setCallMedia] = useState({ local: null, remote: null });
     const notificationRef = useRef(null);
     const userRef = useRef(null);
+    const callControllerRef = useRef(null);
 
     const navigation = useMemo(() => buildNavigation(user), [user]);
     const flatItems = useMemo(() => navigation.flatMap((group) => group.items), [navigation]);
     const current =
         [...flatItems].sort((a, b) => b.href.length - a.href.length).find((item) => isActive(url, item.href)) ??
         (url.split('?')[0] === '/notifications' ? { section: 'Inbox', label: 'Notifications' } : null);
+
+    useEffect(() => {
+        if (!user?.id) return undefined;
+
+        const controller = createCallController({
+            userId: user.id,
+            iceServers: calls?.ice_servers || [],
+            signalUrl: '/calls/signal',
+            onState: setCallState,
+            onMedia: setCallMedia,
+            onError: (message) => setToasts((current) => [
+                ...current,
+                { id: `call-${Date.now()}`, type: 'error', message },
+            ]),
+        });
+
+        callControllerRef.current = controller;
+        setCallController(controller);
+
+        return () => {
+            controller.destroy();
+            callControllerRef.current = null;
+            setCallController(null);
+        };
+    }, [user?.id]);
 
     useEffect(() => {
         setSidebarOpen(false);
@@ -228,6 +259,7 @@ export default function AppLayout({ children }) {
                 'conversation.read': handleRead,
                 'message.updated': handleMessageUpdated,
                 'message.deleted': handleMessageDeleted,
+                'call.signal': (payload) => callControllerRef.current?.onSignal(payload),
             },
         });
     }, [user?.id, realtime?.topic]);
@@ -547,6 +579,16 @@ export default function AppLayout({ children }) {
                     <Toast key={toast.id} toast={toast} onDismiss={dismissToast} />
                 ))}
             </div>
+
+            <CallOverlay
+                call={callState}
+                media={callMedia}
+                onAccept={(video) => callControllerRef.current?.acceptCall(video)}
+                onDecline={() => callControllerRef.current?.declineCall()}
+                onHangup={() => callControllerRef.current?.hangup()}
+                onToggleMute={() => callControllerRef.current?.toggleMute()}
+                onToggleCamera={() => callControllerRef.current?.toggleCamera()}
+            />
         </div>
     );
 }
