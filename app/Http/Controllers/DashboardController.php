@@ -9,6 +9,7 @@ use App\Models\TransferRecord;
 use App\Services\BedAvailabilityService;
 use App\Services\HospitalAccessService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,7 +35,8 @@ class DashboardController extends Controller
     private function networkDashboard(Request $request, $user): Response
     {
         $filters = $request->only(['region_id', 'province_id', 'ownership_type', 'category', 'search', 'service_id']);
-        $summary = $this->availability->networkSummary($user, $filters);
+        $cacheKey = 'bhn.dashboard.network.v1:'.$user->id.':'.md5(json_encode($filters));
+        $summary = Cache::remember($cacheKey, now()->addSeconds(30), fn () => $this->availability->networkSummary($user, $filters));
         $hospitalIds = collect($summary['hospitals'])->pluck('hospital_id')->all();
 
         $recentReferrals = Referral::query()
@@ -101,7 +103,11 @@ class DashboardController extends Controller
 
         /** @var Hospital $hospital */
         $hospital = $hospitals->firstWhere('id', $hospitalId);
-        $summary = $this->availability->hospitalDashboard($hospital);
+        $summary = Cache::remember(
+            'bhn.dashboard.hospital.v1:'.$hospital->id,
+            now()->addSeconds(30),
+            fn () => $this->availability->hospitalDashboard($hospital),
+        );
 
         $recentUpdates = BedStatusHistory::query()
             ->where('hospital_id', $hospitalId)
