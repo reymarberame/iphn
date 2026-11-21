@@ -29,6 +29,7 @@ import {
     classNames,
     formatDateTime,
     formatNumber,
+    facilityLevel,
     humanize,
     toneForHospitalStatus,
     toneForOwnership,
@@ -46,10 +47,10 @@ const STATUS_OPTIONS = [
 ];
 
 const FACILITY_OPTIONS = [
-    { value: 'primary', label: 'Primary care' },
-    { value: 'secondary', label: 'Secondary' },
-    { value: 'tertiary', label: 'Tertiary' },
-    { value: 'specialty', label: 'Specialty' },
+    { value: 'primary', label: 'Level 1' },
+    { value: 'secondary', label: 'Level 2' },
+    { value: 'tertiary', label: 'Level 3' },
+    { value: 'specialty', label: 'Level 4' },
 ];
 
 const EMPTY_FORM = {
@@ -296,7 +297,7 @@ export default function AdminHospitalIndex({ hospitals = [], municipalities = []
                                             </td>
                                             <td>
                                                 <div className="flex flex-col items-start gap-1">
-                                                    <Badge tone="slate">{humanize(hospital.facility_type)}</Badge>
+                                                    <Badge tone="slate">{facilityLevel(hospital.facility_type)}</Badge>
                                                     <Badge tone={toneForOwnership(hospital.ownership_type)}>{hospital.ownership_label}</Badge>
                                                 </div>
                                             </td>
@@ -460,7 +461,7 @@ export default function AdminHospitalIndex({ hospitals = [], municipalities = []
                             </Select>
                         </Field>
 
-                        <Field label="Facility type" htmlFor="hospital-facility-type" error={form.errors.facility_type} required>
+                        <Field label="Facility level" htmlFor="hospital-facility-type" error={form.errors.facility_type} required>
                             <Select
                                 id="hospital-facility-type"
                                 value={form.data.facility_type}

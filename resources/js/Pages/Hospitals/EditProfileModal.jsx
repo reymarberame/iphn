@@ -5,10 +5,10 @@ import { Button, Field, Modal, Select, Textarea, TextInput } from '../../compone
 import { classNames, formatDateTime } from '../../lib/utils';
 
 const FACILITY_OPTIONS = [
-    { value: 'primary', label: 'Primary care' },
-    { value: 'secondary', label: 'Secondary' },
-    { value: 'tertiary', label: 'Tertiary' },
-    { value: 'specialty', label: 'Specialty' },
+    { value: 'primary', label: 'Level 1' },
+    { value: 'secondary', label: 'Level 2' },
+    { value: 'tertiary', label: 'Level 3' },
+    { value: 'specialty', label: 'Level 4' },
 ];
 
 const OWNERSHIP_OPTIONS = [
@@ -161,7 +161,7 @@ export default function EditProfileModal({ hospital, municipalities = [], servic
                         </Select>
                     </Field>
 
-                    <Field label="Facility type" htmlFor="profile-hospital-facility-type" error={form.errors.facility_type} required>
+                    <Field label="Facility level" htmlFor="profile-hospital-facility-type" error={form.errors.facility_type} required>
                         <Select
                             id="profile-hospital-facility-type"
                             value={form.data.facility_type}

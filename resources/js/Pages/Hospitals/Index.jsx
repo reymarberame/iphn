@@ -25,6 +25,7 @@ import {
 import {
     classNames,
     formatNumber,
+    facilityLevel,
     humanize,
     relativeTime,
     toneForHospitalStatus,
@@ -227,7 +228,7 @@ export default function HospitalIndex({ hospitals = [], filters = {}, referringH
 
                                     <div className="mt-3">
                                         <p className="text-[10px] font-semibold tracking-wide text-ink-400 uppercase">
-                                            {hospital.hospital_code} · {humanize(hospital.facility_type)}
+                                            {hospital.hospital_code} · {facilityLevel(hospital.facility_type)}
                                         </p>
                                         <Link
                                             href={`/hospitals/${hospital.hospital_id}`}

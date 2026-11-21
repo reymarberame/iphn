@@ -11,6 +11,17 @@ export function humanize(value) {
         .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+const FACILITY_LEVELS = {
+    primary: 'Level 1',
+    secondary: 'Level 2',
+    tertiary: 'Level 3',
+    specialty: 'Level 4',
+};
+
+export function facilityLevel(value) {
+    return FACILITY_LEVELS[value] || humanize(value);
+}
+
 export function initials(name) {
     if (!name) return 'IP';
     return name

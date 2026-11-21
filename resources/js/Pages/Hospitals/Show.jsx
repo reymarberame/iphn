@@ -32,6 +32,7 @@ import {
     formatDateTime,
     formatMinutes,
     formatNumber,
+    facilityLevel,
     humanize,
     minutesSince,
     relativeTime,
@@ -296,7 +297,7 @@ export default function HospitalShow({
                                 <div className="grid grid-cols-2 gap-3 border-t border-ink-100 pt-3">
                                     <div>
                                         <dt className="text-[10px] font-semibold tracking-wide text-ink-500 uppercase">Facility</dt>
-                                        <dd className="mt-0.5 text-xs font-medium text-ink-700">{humanize(hospital.facility_type)}</dd>
+                                        <dd className="mt-0.5 text-xs font-medium text-ink-700">{facilityLevel(hospital.facility_type)}</dd>
                                     </div>
                                     <div>
                                         <dt className="text-[10px] font-semibold tracking-wide text-ink-500 uppercase">Bed capacity</dt>
