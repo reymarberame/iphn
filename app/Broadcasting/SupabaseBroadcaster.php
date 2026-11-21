@@ -54,8 +54,6 @@ class SupabaseBroadcaster extends Broadcaster
             $messages[] = [
                 'topic' => RealtimeTopics::forUser($userId),
                 'event' => $event,
-                'payload' => $payload,
-                'private' => false,
             ];
         }
 
@@ -64,19 +62,24 @@ class SupabaseBroadcaster extends Broadcaster
         }
 
         try {
-            $response = Http::withHeaders([
-                'apikey' => $this->secret,
-                'Authorization' => 'Bearer '.$this->secret,
-                'Content-Type' => 'application/json',
-            ])->timeout(8)->post(rtrim($this->url, '/').'/realtime/v1/api/broadcast', [
-                'messages' => $messages,
-            ]);
+            foreach ($messages as $message) {
+                $url = rtrim($this->url, '/')
+                    .'/realtime/v1/api/broadcast/'.rawurlencode($message['topic'])
+                    .'/events/'.rawurlencode($message['event']);
 
-            if (! $response->successful()) {
-                Log::warning('Supabase Realtime broadcast failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
+                $response = Http::withHeaders([
+                    'apikey' => $this->secret,
+                    'Authorization' => 'Bearer '.$this->secret,
+                    'Content-Type' => 'application/json',
+                ])->timeout(8)->post($url, $payload);
+
+                if (! $response->successful()) {
+                    Log::warning('Supabase Realtime broadcast failed', [
+                        'topic' => $message['topic'],
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                    ]);
+                }
             }
         } catch (Throwable $exception) {
             Log::warning('Supabase Realtime broadcast error', [
