@@ -36,12 +36,12 @@ class AdminAuditController extends Controller
                     ->whereIn('hospital_id', $hospitalIds)
                     ->orWhereNull('hospital_id'));
             }, fn ($builder) => $builder->whereIn('hospital_id', $hospitalIds))
-            ->when($filters['action'] ?? null, fn ($builder, $action) => $builder->where('action', 'like', $action.'%'))
+            ->when($filters['action'] ?? null, fn ($builder, $action) => $builder->whereLike('action', $action.'%'))
             ->when($filters['hospital_id'] ?? null, fn ($builder, $hospitalId) => $builder->where('hospital_id', $hospitalId))
             ->when($filters['search'] ?? null, function ($builder, $search) {
                 $builder->where(fn ($inner) => $inner
-                    ->where('action', 'like', '%'.$search.'%')
-                    ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%')));
+                    ->whereLike('action', '%'.$search.'%')
+                    ->orWhereHas('user', fn ($userQuery) => $userQuery->whereLike('name', '%'.$search.'%')->orWhereLike('email', '%'.$search.'%')));
             })
             ->latest('created_at');
 

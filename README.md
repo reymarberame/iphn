@@ -2,7 +2,7 @@
 
 Hospital coordination platform for the **Bukidnon Hospital Network (BHN)**. BHN helps participating Bukidnon hospitals publish bed availability, refer patients between facilities, reserve receiving beds, and coordinate transfers — without storing clinical records.
 
-Built with **Laravel 12 + Inertia.js + React 19 (plain JSX)**, Tailwind CSS v4, and MySQL.
+Built with **Laravel 12 + Inertia.js + React 19 (plain JSX)**, Tailwind CSS v4, **Supabase Postgres/Storage**, and **Laravel Reverb**.
 
 ## Scope
 
@@ -33,7 +33,7 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 - Bed reservations only for accepted referrals; reserved beds cannot be double-booked and out-of-service beds cannot be reserved
 - Reservations expire automatically after a configurable TTL and release on cancellation
 - Transfer scheduling, departure, arrival, and completion by the appropriate hospital
-- Private referral-document storage on the `local` disk
+- Private referral-document storage on the `local` disk in development and Supabase Storage in production
 
 **Network administration**
 - Admin-provisioned users, roles, and hospital memberships
@@ -48,7 +48,7 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 - Private per-user channels keep messages, unread badges, read receipts, edits, and deletions in sync on every page
 - Senders can edit or delete their own messages; deletions leave a "This message was deleted" tombstone for both participants
 - Unread counts are derived from each participant's read cursor; opening a thread marks it read, and deleted messages are excluded
-- Chat history persists in MySQL, and the UI warns users not to share patient-identifiable information
+- Chat history persists in Postgres, and the UI warns users not to share patient-identifiable information
 
 **REST API**
 - Versioned under `/api/v1`, authenticated with Sanctum bearer tokens
@@ -62,7 +62,9 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 | Backend | PHP 8.4, Laravel 12, Sanctum |
 | Frontend | Inertia.js 3, React 19, JSX, Tailwind CSS v4, Lucide icons |
 | Build | Vite 6 |
-| Database | MySQL 8 (`bhn_db`, tests use `bhn_testing`) |
+| Database | Supabase Postgres (MySQL remains supported for local development) |
+| Storage | Supabase Storage (S3 protocol) in production; private local disk in development |
+| Hosting | Railway (Docker) — Vercel cannot run this Laravel backend |
 | Auth | Session-based web login + Sanctum personal access tokens for API |
 | Realtime | Laravel Reverb 1, Laravel Echo, pusher-js |
 | Tests | PHPUnit 11 / Laravel test runner |
@@ -71,9 +73,10 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 
 ### Requirements
 
-- PHP 8.4+ with PDO MySQL, Composer 2
+- PHP 8.4+ with PDO MySQL (local) and PDO PostgreSQL (Supabase), Composer 2
 - Node.js 22+ and npm
-- MySQL 8
+- MySQL 8 for the local workflow, or a Supabase project
+- Laragon on Windows can enable `pdo_pgsql` per command with `php -d extension=pdo_pgsql`
 
 ### Installation
 
@@ -115,11 +118,11 @@ The project runs on Laragon's bundled Apache, PHP, and MySQL with no code change
 
 > In PowerShell, use `npm.cmd` if script execution is disabled (`npm.cmd run build`, `npm.cmd install`).
 
-`.env.example` is already preconfigured for BHN:
+`.env.example` is preconfigured for the production Supabase/Railway setup. For the Laragon workflow above, override the database block locally:
 
 ```dotenv
 APP_NAME=BHN
-APP_URL=http://localhost:8000
+APP_URL=http://emr.test
 APP_TIMEZONE=Asia/Manila
 
 DB_CONNECTION=mysql
@@ -137,16 +140,19 @@ BROADCAST_CONNECTION=reverb
 REVERB_APP_ID=local-app
 REVERB_APP_KEY=local-key
 REVERB_APP_SECRET=local-secret
-REVERB_HOST=localhost
+REVERB_HOST=emr.test
 REVERB_PORT=8080
 REVERB_SCHEME=http
+REVERB_CLIENT_HOST=emr.test
+REVERB_CLIENT_PORT=8080
+REVERB_CLIENT_SCHEME=http
 
 BHN_DEMO_PASSWORD=Password@123
 BHN_SHOW_DEMO_ACCOUNTS=false
 SANCTUM_EXPIRATION_MINUTES=480
 ```
 
-> Generate unique Reverb credentials per deployment and keep `REVERB_APP_SECRET` server-side. The matching `VITE_REVERB_*` variables are compiled into the frontend bundle, so rebuild assets after changing them.
+> Generate unique Reverb credentials per deployment and keep `REVERB_APP_SECRET` server-side. Reverb settings are shared with the browser at runtime through Inertia, so changing them no longer requires rebuilding assets.
 
 Create the schema and demo data:
 
@@ -166,6 +172,53 @@ npm run dev
 The seeded environment contains Region X, Bukidnon, all 22 Bukidnon LGUs, eight representative hospitals, 272 beds, sample referrals/transfers, and the demo accounts below.
 
 > **Demo data notice.** Facility names, profiles, contact details, bed layouts, and referral records are representative demonstration data for the Bukidnon deployment. Replace them with official facility records before production use.
+
+## Supabase + Railway deployment
+
+Vercel cannot run this Laravel application: it needs persistent PHP processes, Apache, WebSocket connections, and scheduled commands. The production path in this repository is **Railway (Docker) + Supabase Postgres + Supabase Storage**.
+
+### 1. Supabase project
+
+1. Create a project and copy the **Session Pooler** connection details (port `5432`). Avoid the transaction pooler for migrations and transactional workflows.
+2. Create a **private** Storage bucket (default name `bhn-storage`).
+3. Create **S3 access keys** under Project Settings → Storage → S3 access keys.
+4. Fill the `DB_*` and `SUPABASE_*` values from `.env.example`. Use `DB_SSLMODE=require`.
+
+### 2. Migrate schema and existing data
+
+Run this from the machine that holds the current MySQL data. On Laragon, prefix PHP with `-d extension=pdo_pgsql`.
+
+```bash
+php artisan migrate --force
+php artisan db:copy-to-postgres --fresh --documents
+```
+
+The command copies business tables in foreign-key order, converts MySQL booleans and zero dates, resets Postgres sequences, uploads referral documents when `--documents` is passed, and verifies source/target row counts. Framework tables (`migrations`, `sessions`, `cache`, `jobs`, tokens) are rebuilt on the destination rather than copied.
+
+A final migration revokes `anon`/`authenticated` privileges on the `public` schema so Supabase's Data API cannot read application tables. Laravel connects as the table owner and is unaffected.
+
+### 3. Railway service
+
+1. Create a Railway project from this Git repository. `railway.toml` selects the Dockerfile and the `/up` health check.
+2. Add environment variables: `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://<railway-domain>`, the database `DB_*` block, the storage `SUPABASE_*` block, `REFERRAL_DOCUMENTS_DISK=supabase`, `SESSION_SECURE_COOKIE=true`, `SESSION_ENCRYPT=true`, and Reverb credentials.
+3. Generate a public domain and deploy. The entrypoint runs migrations (unless `RUN_MIGRATIONS=false`), caches config/routes/views, then Supervisor starts Apache on `$PORT`, Reverb on `127.0.0.1:8081`, and `schedule:work`. Apache proxies `/app` to Reverb, so chat uses the same HTTPS domain.
+
+Production Reverb values:
+
+```dotenv
+REVERB_SERVER_HOST=127.0.0.1
+REVERB_SERVER_PORT=8081
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8081
+REVERB_SCHEME=http
+REVERB_CLIENT_HOST=
+REVERB_CLIENT_PORT=
+REVERB_CLIENT_SCHEME=
+```
+
+Leave the client values blank: the Inertia middleware falls back to the incoming public host and HTTPS scheme. The browser then connects to `wss://<railway-domain>/app/...`, which Apache proxies to Reverb.
+
+> Railway runs one application replica by default. If you scale horizontally, disable `RUN_MIGRATIONS` on boot, move sessions/cache to a shared store, and enable Reverb scaling.
 
 ## Seeded hospital network
 
@@ -278,7 +331,7 @@ docs/
 ## Operational notes
 
 - Bed counts, category breakdowns, and freshness are computed at read time from `beds` and `bed_status_history`; snapshots are generated only when explicitly requested by a network administrator.
-- Referral documents are stored privately under `storage/app/private/referral-documents/{referral_public_id}` and downloaded through an authorized controller action.
+- Referral documents are stored privately under `referral-documents/{referral_public_id}` on the disk selected by `REFERRAL_DOCUMENTS_DISK` (`local` in development, `supabase` in production) and downloaded through an authorized controller action.
 - Audit records capture the actor, hospital context, subject, changed fields, IP address, and user agent.
 - Branding uses the Province of Bukidnon official seal (`public/images/bukidnon-seal.jpg`), with 64 px and 180 px PNG derivatives for the favicon and Apple touch icon.
 - Chat requires the Reverb server to be running (`php artisan reverb:start --host=0.0.0.0 --port=8080`). Broadcasts use `ShouldBroadcastNow`, so no queue worker is required for messaging. Open two accounts in separate browsers to exercise live delivery.

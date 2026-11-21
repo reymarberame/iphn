@@ -66,9 +66,9 @@ class ReferralApiController extends Controller
             ->when($request->query('urgency'), fn ($builder, $urgency) => $builder->where('urgency', $urgency))
             ->when($request->query('search'), function ($builder, $search) {
                 $builder->where(fn ($inner) => $inner
-                    ->where('referral_number', 'like', '%'.$search.'%')
-                    ->orWhere('patient_reference', 'like', '%'.$search.'%')
-                    ->orWhere('patient_name', 'like', '%'.$search.'%'));
+                    ->whereLike('referral_number', '%'.$search.'%')
+                    ->orWhereLike('patient_reference', '%'.$search.'%')
+                    ->orWhereLike('patient_name', '%'.$search.'%'));
             })
             ->latest('created_at')
             ->paginate(min(100, max(1, (int) $request->query('per_page', 20))))

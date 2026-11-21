@@ -72,9 +72,9 @@ class ReferralController extends Controller
             ->when($filters['urgency'] ?? null, fn ($builder, $urgency) => $builder->where('urgency', $urgency))
             ->when($filters['search'] ?? null, function ($builder, $search) {
                 $builder->where(fn ($inner) => $inner
-                    ->where('referral_number', 'like', '%'.$search.'%')
-                    ->orWhere('patient_reference', 'like', '%'.$search.'%')
-                    ->orWhere('patient_name', 'like', '%'.$search.'%'));
+                    ->whereLike('referral_number', '%'.$search.'%')
+                    ->orWhereLike('patient_reference', '%'.$search.'%')
+                    ->orWhereLike('patient_name', '%'.$search.'%'));
             })
             ->latest('created_at')
             ->paginate(12)
@@ -466,7 +466,8 @@ class ReferralController extends Controller
         abort_unless($document->referral_id === $referral->id, 404);
         $this->authorize('view', $referral);
 
-        return Storage::disk('local')->download($document->storage_path, $document->original_name);
+        return Storage::disk(config('bhn.referral_documents_disk', 'local'))
+            ->download($document->storage_path, $document->original_name);
     }
 
     private function hospitalPayload(?Hospital $hospital): ?array

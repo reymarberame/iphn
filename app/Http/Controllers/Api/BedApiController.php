@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Bed;
 use App\Models\BedStatusHistory;
-use App\Models\Hospital;
 use App\Models\Room;
 use App\Services\AuditLogger;
 use App\Services\BedAvailabilityService;
@@ -54,7 +53,7 @@ class BedApiController extends Controller
             ->when($request->query('ward_id'), fn ($builder, $wardId) => $builder->whereHas('room', fn ($room) => $room->where('ward_id', $wardId)))
             ->when($request->query('status'), fn ($builder, $status) => $builder->where('status', $status))
             ->when($request->query('category'), fn ($builder, $category) => $builder->whereHas('category', fn ($cat) => $cat->where('slug', $category)))
-            ->when($request->query('search'), fn ($builder, $search) => $builder->where('bed_code', 'like', '%'.$search.'%'))
+            ->when($request->query('search'), fn ($builder, $search) => $builder->whereLike('bed_code', '%'.$search.'%'))
             ->orderBy('bed_code');
 
         $beds = $query->get()->map(fn (Bed $bed) => $this->payload($bed))->values();

@@ -63,8 +63,8 @@ class AdminApiController extends Controller
             ->with(['roles:id,name,slug', 'memberships.hospital:id,name,short_name', 'memberships.role:id,name,slug'])
             ->when($request->query('search'), function ($builder, $search) {
                 $builder->where(fn ($inner) => $inner
-                    ->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%'));
+                    ->whereLike('name', '%'.$search.'%')
+                    ->orWhereLike('email', '%'.$search.'%'));
             })
             ->when($request->query('status'), fn ($builder, $status) => $builder->where('status', $status));
 
@@ -124,7 +124,7 @@ class AdminApiController extends Controller
             ->when($isNetwork, function ($builder) use ($hospitalIds) {
                 $builder->where(fn ($inner) => $inner->whereIn('hospital_id', $hospitalIds)->orWhereNull('hospital_id'));
             }, fn ($builder) => $builder->whereIn('hospital_id', $hospitalIds))
-            ->when($request->query('action'), fn ($builder, $action) => $builder->where('action', 'like', $action.'%'))
+            ->when($request->query('action'), fn ($builder, $action) => $builder->whereLike('action', $action.'%'))
             ->when($request->query('hospital_id'), fn ($builder, $hospitalId) => $builder->where('hospital_id', $hospitalId))
             ->latest('created_at');
 

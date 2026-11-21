@@ -45,7 +45,7 @@ class TransferApiController extends Controller
                 'coordinator:id,name',
             ])
             ->when($request->query('status'), fn ($builder, $status) => $builder->where('status', $status))
-            ->when($request->query('search'), fn ($builder, $search) => $builder->whereHas('referral', fn ($referral) => $referral->where('referral_number', 'like', '%'.$search.'%')))
+            ->when($request->query('search'), fn ($builder, $search) => $builder->whereHas('referral', fn ($referral) => $referral->whereLike('referral_number', '%'.$search.'%')))
             ->latest('updated_at')
             ->paginate(min(100, max(1, (int) $request->query('per_page', 20))))
             ->withQueryString();

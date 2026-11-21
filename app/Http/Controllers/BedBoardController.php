@@ -62,7 +62,7 @@ class BedBoardController extends Controller
             ->when($filters['ward_id'] ?? null, fn ($query, $wardId) => $query->whereHas('room', fn ($room) => $room->where('ward_id', $wardId)))
             ->when($filters['category'] ?? null, fn ($query, $category) => $query->whereHas('category', fn ($cat) => $cat->where('slug', $category)))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
-            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('bed_code', 'like', '%'.$search.'%'))
+            ->when($filters['search'] ?? null, fn ($query, $search) => $query->whereLike('bed_code', '%'.$search.'%'))
             ->orderBy('bed_code');
 
         $beds = $bedsQuery->get()->map(fn (Bed $bed) => [

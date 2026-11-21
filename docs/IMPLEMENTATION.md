@@ -156,13 +156,13 @@ Arrival deliberately requires `in_transit` even though the UI ability flag also 
 
 ## 9. Documents
 
-Referral documents are stored on the `local` disk:
+Referral documents use the disk configured by `REFERRAL_DOCUMENTS_DISK`. The default local disk stores them at:
 
 ```
 storage/app/private/referral-documents/{referral_public_id}/{uuid}.{ext}
 ```
 
-They are never served from `public/`. Downloads go through `ReferralController@downloadDocument`, which authorizes referral membership and streams the file. API uploads are limited to five files per request, 10 MB each, with pdf/jpg/jpeg/png/doc/docx types. `ReferralDocument` records the original name, MIME type, size, and uploader.
+In production the `supabase` S3 disk stores the same key in a private Supabase Storage bucket. Files are never served from `public/`. Downloads go through `ReferralController@downloadDocument`, which authorizes referral membership and streams the file. API uploads are limited to five files per request, 10 MB each, with pdf/jpg/jpeg/png/doc/docx types. `ReferralDocument` records the original name, MIME type, size, and uploader.
 
 ## 10. Real-time direct messaging
 
@@ -232,12 +232,14 @@ php artisan test
 
 ## 15. Operations
 
-- Schedule `reservations:expire` every five minutes (already registered in `routes/console.php`).
-- Run `php artisan reverb:start --host=0.0.0.0 --port=8080` alongside the web server for chat. Reverb credentials live in `REVERB_*`; the frontend reads compiled `VITE_REVERB_*` values, so rebuild assets after changing them. Production deployments should terminate TLS in front of Reverb and use `REVERB_SCHEME=https`.
+- Schedule `reservations:expire` every five minutes (already registered in `routes/console.php`). The production container runs `php artisan schedule:work` under Supervisor.
+- Run `php artisan reverb:start --host=0.0.0.0 --port=8080` alongside the web server for chat. Reverb credentials live in `REVERB_*`; the browser receives runtime client settings through Inertia (`REVERB_CLIENT_*`, falling back to the request host), so changing credentials no longer requires rebuilding assets. In production, Apache proxies the public HTTPS `/app` path to Reverb on `127.0.0.1:8081`.
 - Run a queue worker if notifications/audits are moved off the sync driver; the current implementation uses database notifications and synchronous writes.
 - Run `php artisan storage:link` only if public assets are added; referral documents intentionally remain private.
-- `npm run build` produces `public/build`; deploy that directory with the application.
+- `npm run build` produces `public/build`; the Docker image builds it in a Node stage and copies it into the application image.
 - For production, set a strong `APP_KEY`, HTTPS, restrictive database credentials, and a real mailer for password resets.
+- Supabase Postgres runs through the **Session Pooler** (`DB_PORT=5432`, `DB_SSLMODE=require`). Copy existing data once with `php artisan db:copy-to-postgres --fresh --documents` before switching `DB_CONNECTION` to `pgsql`.
+- Supabase Storage uses the S3-compatible disk `supabase` (`SUPABASE_S3_*`, `SUPABASE_STORAGE_BUCKET`). Set `REFERRAL_DOCUMENTS_DISK=supabase` in production.
 - Security hardening: keep `BHN_SHOW_DEMO_ACCOUNTS=false` and `APP_ENV=production` (the demo panel is local-only); set `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, and `SESSION_ENCRYPT=true`; Sanctum tokens expire after `SANCTUM_EXPIRATION_MINUTES` (default 480); responses carry CSP, `X-Frame-Options`, `X-Content-Type-Options`, and `Referrer-Policy` headers.
 - The login page and demo seeder require `BHN_DEMO_PASSWORD`; the seeder fails closed if it is empty.
 
@@ -249,4 +251,4 @@ php artisan test
 - Chat supports 1-to-1 text messages only: no group threads, attachments, typing indicators, or push notifications. History is capped at the latest 200 messages per thread in the UI. Deletions are tombstones; there is no hard delete, restore, or edit history.
 - Reports are operational and date-bounded; no data warehouse or long-term analytics store.
 - The frontend uses page-level code splitting; the shared initial bundle is ~372 kB minified (~117 kB gzipped). Further vendor chunking is possible but not required for current usage.
-- Referral documents are stored on the local disk; production deployments with multiple app servers should switch to S3-compatible private storage.
+- Referral documents use the disk selected by `REFERRAL_DOCUMENTS_DISK`. Local development uses `storage/app/private`; production uses private Supabase Storage, and the one-time copy command uploads any existing files.

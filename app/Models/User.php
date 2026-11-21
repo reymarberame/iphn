@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -29,6 +31,18 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Store emails in lowercase so lookups remain consistent on PostgreSQL,
+     * where string comparisons are case-sensitive (unlike MySQL's default
+     * case-insensitive collation).
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value) => Str::lower($value),
+        );
     }
 
     public function roles(): BelongsToMany

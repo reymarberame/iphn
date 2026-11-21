@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,7 +26,7 @@ class ForgotPasswordController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = User::query()->where('email', $request->input('email'))->where('status', 'active')->first();
+        $user = User::query()->where('email', Str::lower((string) $request->input('email')))->where('status', 'active')->first();
 
         if ($user) {
             Password::sendResetLink(['email' => $user->email]);

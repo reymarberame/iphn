@@ -224,9 +224,9 @@ class BedAvailabilityService
             ->when($filters['service_id'] ?? null, fn (Builder $q, $v) => $q->whereHas('services', fn (Builder $s) => $s->where('services.id', $v)))
             ->when($filters['search'] ?? null, function (Builder $q, $v) {
                 $q->where(fn (Builder $inner) => $inner
-                    ->where('name', 'like', '%'.$v.'%')
-                    ->orWhere('hospital_code', 'like', '%'.$v.'%')
-                    ->orWhere('short_name', 'like', '%'.$v.'%'));
+                    ->whereLike('name', '%'.$v.'%')
+                    ->orWhereLike('hospital_code', '%'.$v.'%')
+                    ->orWhereLike('short_name', '%'.$v.'%'));
             })
             ->when($filters['category'] ?? null, function (Builder $q, $v) {
                 $q->whereHas('beds', fn (Builder $b) => $b->where('active', true)

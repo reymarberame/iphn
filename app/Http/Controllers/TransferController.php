@@ -40,7 +40,7 @@ class TransferController extends Controller
                 'coordinator:id,name',
             ])
             ->when($filters['status'] ?? null, fn ($builder, $status) => $builder->where('status', $status))
-            ->when($filters['search'] ?? null, fn ($builder, $search) => $builder->whereHas('referral', fn ($referral) => $referral->where('referral_number', 'like', '%'.$search.'%')))
+            ->when($filters['search'] ?? null, fn ($builder, $search) => $builder->whereHas('referral', fn ($referral) => $referral->whereLike('referral_number', '%'.$search.'%')))
             ->latest('updated_at')
             ->paginate(15)
             ->withQueryString()

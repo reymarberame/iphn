@@ -33,7 +33,12 @@ class ResetPasswordController extends Controller
         ]);
 
         $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
+            [
+                'email' => Str::lower((string) $request->input('email')),
+                'password' => $request->input('password'),
+                'password_confirmation' => $request->input('password_confirmation'),
+                'token' => $request->input('token'),
+            ],
             function (User $user) use ($request) {
                 if (! $user->isActive()) {
                     return;

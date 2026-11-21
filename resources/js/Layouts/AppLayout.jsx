@@ -122,7 +122,7 @@ function Toast({ toast, onDismiss }) {
 
 export default function AppLayout({ children }) {
     const page = usePage();
-    const { auth, chat, flash, notifications, settings } = page.props;
+    const { auth, chat, flash, notifications, settings, reverb } = page.props;
     const user = auth?.user;
     const url = page.url;
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -187,7 +187,7 @@ export default function AppLayout({ children }) {
     }, []);
 
     useEffect(() => {
-        const echo = getEcho();
+        const echo = getEcho(reverb);
 
         if (!echo || !user?.id) return undefined;
 

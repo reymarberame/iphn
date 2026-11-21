@@ -25,4 +25,18 @@ return [
     'reservation_ttl_minutes' => 120,
 
     'referral_document_max_kb' => 10240,
+
+    // "local" keeps files under storage/app/private; "supabase" stores them in
+    // Supabase Storage through the S3-compatible disk defined in filesystems.php.
+    'referral_documents_disk' => env('REFERRAL_DOCUMENTS_DISK', 'local'),
+
+    // Browser-side Reverb settings shared through Inertia. Leave the client
+    // host/port/scheme empty in production to reuse the request host (which
+    // also works behind Railway's HTTPS proxy).
+    'reverb' => [
+        'key' => env('REVERB_APP_KEY'),
+        'host' => env('REVERB_CLIENT_HOST'),
+        'port' => env('REVERB_CLIENT_PORT'),
+        'scheme' => env('REVERB_CLIENT_SCHEME'),
+    ],
 ];

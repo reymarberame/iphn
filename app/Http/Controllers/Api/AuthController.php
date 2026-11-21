@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Models\LoginLog;
 use App\Models\User;
 use App\Services\HospitalAccessService;
@@ -36,7 +36,7 @@ class AuthController extends Controller
             return $this->error('Too many login attempts. Try again in '.RateLimiter::availableIn($throttleKey).' seconds.', 429);
         }
 
-        $user = User::query()->where('email', $validated['email'])->first();
+        $user = User::query()->where('email', Str::lower($validated['email']))->first();
 
         if (! $user || ! Hash::check($validated['password'], $user->password) || ! $user->isActive()) {
             RateLimiter::hit($throttleKey, 60);
@@ -93,7 +93,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $request): JsonResponse
     {
         $validated = $request->validate(['email' => ['required', 'email']]);
-        $user = User::query()->where('email', $validated['email'])->where('status', 'active')->first();
+        $user = User::query()->where('email', Str::lower($validated['email']))->where('status', 'active')->first();
 
         if ($user) {
             Password::sendResetLink(['email' => $user->email]);

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AdminScope;
 use App\Models\HospitalUserMembership;
+use App\Models\Province;
+use App\Models\Region;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\AuditLogger;
@@ -11,6 +13,7 @@ use App\Services\HospitalAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -43,8 +46,8 @@ class AdminUserController extends Controller
             ])
             ->when($request->input('search'), function ($builder, $search) {
                 $builder->where(fn ($inner) => $inner
-                    ->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%'));
+                    ->whereLike('name', '%'.$search.'%')
+                    ->orWhereLike('email', '%'.$search.'%'));
             })
             ->when($request->input('status'), fn ($builder, $status) => $builder->where('status', $status))
             ->when($request->input('role_id'), function ($builder, $roleId) {
@@ -105,8 +108,8 @@ class AdminUserController extends Controller
             'hospitals' => $this->access->managementHospitals($actor)
                 ->map(fn ($hospital) => ['id' => $hospital->id, 'name' => $hospital->name, 'short_name' => $hospital->short_name])
                 ->values(),
-            'regions' => \App\Models\Region::query()->orderBy('name')->get(['id', 'name', 'short_name']),
-            'provinces' => \App\Models\Province::query()->orderBy('name')->get(['id', 'name', 'region_id']),
+            'regions' => Region::query()->orderBy('name')->get(['id', 'name', 'short_name']),
+            'provinces' => Province::query()->orderBy('name')->get(['id', 'name', 'region_id']),
             'isNetworkUser' => $isNetwork,
             'isSuperAdmin' => $this->access->isSuperAdmin($actor),
         ]);
@@ -202,6 +205,8 @@ class AdminUserController extends Controller
 
     private function validateUser(Request $request, ?User $user = null): array
     {
+        $request->merge(['email' => Str::lower((string) $request->input('email'))]);
+
         return $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],

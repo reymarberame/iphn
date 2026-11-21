@@ -9,7 +9,6 @@ use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class ReportService
 {
@@ -126,7 +125,7 @@ class ReportService
                 ->whereIn('referring_hospital_id', $hospitalIds)
                 ->orWhereIn('receiving_hospital_id', $hospitalIds))
             ->where('created_at', '>=', $trendStart)
-            ->selectRaw('DATE(created_at) as day, count(*) as aggregate')
+            ->selectRaw('CAST(created_at AS DATE) as day, count(*) as aggregate')
             ->groupBy('day')
             ->pluck('aggregate', 'day');
 

@@ -60,6 +60,24 @@ return [
             'report' => false,
         ],
 
+        // Supabase Storage speaks the S3 protocol. Use the project's S3
+        // endpoint plus an access key pair created under Storage > S3.
+        'supabase' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_ACCESS_KEY_ID'),
+            'secret' => env('SUPABASE_S3_SECRET_ACCESS_KEY'),
+            'region' => env('SUPABASE_S3_REGION', 'us-east-1'),
+            'bucket' => env('SUPABASE_STORAGE_BUCKET', 'bhn-storage'),
+            'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+            'use_path_style_endpoint' => env('SUPABASE_S3_USE_PATH_STYLE', true),
+            // Supabase rejects the checksum headers that newer AWS SDK builds
+            // attach by default, so only send them when the operation needs them.
+            'request_checksum_calculation' => 'when_required',
+            'response_checksum_validation' => 'when_required',
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*

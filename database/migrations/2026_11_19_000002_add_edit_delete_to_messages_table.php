@@ -11,8 +11,8 @@ return new class extends Migration
     {
         Schema::table('messages', function (Blueprint $table) {
             $table->text('body')->nullable()->change();
-            $table->timestamp('edited_at')->nullable()->after('body');
-            $table->timestamp('deleted_at')->nullable()->after('edited_at');
+            $table->timestamp('edited_at')->nullable();
+            $table->timestamp('deleted_at')->nullable();
         });
     }
 

@@ -5,10 +5,12 @@ namespace App\Services;
 use App\Models\Hospital;
 use App\Models\HospitalUserMembership;
 use App\Models\Referral;
+use App\Models\ReferralDocument;
 use App\Models\ReferralStatusHistory;
 use App\Models\Service;
 use App\Models\TransferRecord;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -232,7 +234,7 @@ class ReferralService
         return $updated->fresh(['transfer', 'activeReservation']);
     }
 
-    public function uploadDocument(Referral $referral, User $user, \Illuminate\Http\UploadedFile $file): \App\Models\ReferralDocument
+    public function uploadDocument(Referral $referral, User $user, UploadedFile $file): ReferralDocument
     {
         if (! $this->access->canViewReferral($user, $referral)) {
             abort(403);
@@ -241,7 +243,7 @@ class ReferralService
         $path = $file->storeAs(
             'referral-documents/'.$referral->public_id,
             Str::uuid().'.'.$file->getClientOriginalExtension(),
-            'local'
+            config('bhn.referral_documents_disk', 'local')
         );
 
         return $referral->documents()->create([
