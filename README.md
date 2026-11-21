@@ -178,6 +178,7 @@ The HTTP application runs entirely on **Vercel** through `api/index.php` and the
 
 - **Chat:** Laravel events still broadcast to `user.{id}` channels, but `SupabaseBroadcaster` translates them to unguessable public Realtime topics derived from `APP_KEY`. The browser receives only the publishable key and its own topic through Inertia. No Reverb server, queue worker, or WebSocket proxy is needed.
 - **Scheduler:** `vercel.json` declares a 15-minute Vercel Schedule that calls `GET /cron/expire-reservations`. The route checks `CRON_SECRET` (sent as `Authorization: Bearer <secret>`) and runs `php artisan reservations:expire`. Hobby accounts support schedules down to 15-minute intervals.
+- **Voice/video calls:** the message header has voice and video call buttons. Calls are peer-to-peer WebRTC; signaling is posted to `POST /calls/signal`, which verifies both users share a conversation and broadcasts `call.signal` over Supabase Realtime. The browser asks for microphone/camera permission and uses Google STUN plus a public TURN relay as a best-effort fallback. For production reliability, set `TURN_USERNAME`/`TURN_CREDENTIAL` to your own TURN service.
 
 ### Supabase project
 
