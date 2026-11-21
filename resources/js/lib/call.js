@@ -1,5 +1,23 @@
 const AUDIO_ONLY = { audio: true, video: false };
 
+function friendlyMediaError(error) {
+    const name = error?.name || '';
+
+    if (['NotAllowedError', 'PermissionDeniedError', 'SecurityError'].includes(name)) {
+        return 'Microphone/camera access was blocked. Click the lock icon in your browser address bar, allow Microphone and Camera, then try again.';
+    }
+
+    if (['NotFoundError', 'DevicesNotFoundError'].includes(name)) {
+        return 'No microphone or camera was found on this device. Connect one and try again.';
+    }
+
+    if (['NotReadableError', 'TrackStartError'].includes(name)) {
+        return 'Your microphone or camera is already being used by another app. Close it and try again.';
+    }
+
+    return error?.message || 'Could not access your microphone or camera.';
+}
+
 /**
  * Manages one peer-to-peer WebRTC call at a time. Signaling is relayed through
  * Laravel (which broadcasts it over Supabase Realtime to the other user).
@@ -98,9 +116,16 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
         try {
             return await navigator.mediaDevices.getUserMedia({ audio: true, video: withVideo });
         } catch (error) {
-            if (!withVideo) throw error;
+            if (!withVideo) {
+                throw new Error(friendlyMediaError(error));
+            }
+
             // Some users deny camera access but still want a voice call.
-            return navigator.mediaDevices.getUserMedia(AUDIO_ONLY);
+            try {
+                return await navigator.mediaDevices.getUserMedia(AUDIO_ONLY);
+            } catch (audioError) {
+                throw new Error(friendlyMediaError(audioError));
+            }
         }
     };
 
