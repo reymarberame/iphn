@@ -222,7 +222,7 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
 
         if (type === 'offer') {
             if (state.status !== 'idle') {
-                send(from.id, state.conversation_id || 0, callId, 'busy');
+                send(from.id, payload.conversation_id || state.conversation_id || 0, callId, 'busy');
                 return;
             }
 
