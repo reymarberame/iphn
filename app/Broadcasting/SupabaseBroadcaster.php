@@ -41,6 +41,9 @@ class SupabaseBroadcaster extends Broadcaster
                 ? $channel->name
                 : (string) $channel;
 
+            // Laravel hands private channels to broadcasters as "private-user.1".
+            $name = Str::after($name, 'private-');
+
             if (! Str::startsWith($name, 'user.')) {
                 continue;
             }
@@ -56,12 +59,6 @@ class SupabaseBroadcaster extends Broadcaster
                 'event' => $event,
             ];
         }
-
-        Log::warning('BHN_REALTIME_DEBUG', [
-            'channels' => array_map(fn ($channel) => is_object($channel) && property_exists($channel, 'name') ? $channel->name : (string) $channel, $channels),
-            'event' => $event,
-            'messages' => count($messages),
-        ]);
 
         if ($messages === []) {
             return;
@@ -79,8 +76,6 @@ class SupabaseBroadcaster extends Broadcaster
                     'Authorization' => 'Bearer '.$this->secret,
                     'Content-Type' => 'application/json',
                 ])->timeout(8)->post($url, $payload);
-
-                Log::warning('BHN_REALTIME_RESPONSE', ['status' => $response->status(), 'topic' => $message['topic']]);
 
                 if (! $response->successful()) {
                     Log::warning('Supabase Realtime broadcast failed', [
