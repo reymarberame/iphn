@@ -65,7 +65,8 @@ class SupabaseBroadcaster extends Broadcaster
             foreach ($messages as $message) {
                 $url = rtrim($this->url, '/')
                     .'/realtime/v1/api/broadcast/'.rawurlencode($message['topic'])
-                    .'/events/'.rawurlencode($message['event']);
+                    .'/events/'.rawurlencode($message['event'])
+                    .'?apikey='.rawurlencode($this->secret).'&vsn=2.0.0';
 
                 $response = Http::withHeaders([
                     'apikey' => $this->secret,
