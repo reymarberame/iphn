@@ -2,7 +2,7 @@
 
 Hospital coordination platform for the **Bukidnon Hospital Network (BHN)**. BHN helps participating Bukidnon hospitals publish bed availability, refer patients between facilities, reserve receiving beds, and coordinate transfers — without storing clinical records.
 
-Built with **Laravel 12 + Inertia.js + React 19 (plain JSX)**, Tailwind CSS v4, **Supabase Postgres/Storage**, and **Laravel Reverb**.
+Built with **Laravel 12 + Inertia.js + React 19 (plain JSX)**, Tailwind CSS v4, **Supabase Postgres/Storage/Realtime**, and **Vercel**.
 
 ## Scope
 
@@ -44,7 +44,7 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 - In-app notifications for referral, reservation, and stale-report events
 
 **Real-time direct messaging**
-- 1-to-1 direct messages between any active BHN users, delivered instantly over Laravel Reverb WebSockets
+- 1-to-1 direct messages between any active BHN users, delivered instantly over Supabase Realtime Broadcast
 - Private per-user channels keep messages, unread badges, read receipts, edits, and deletions in sync on every page
 - Senders can edit or delete their own messages; deletions leave a "This message was deleted" tombstone for both participants
 - Unread counts are derived from each participant's read cursor; opening a thread marks it read, and deleted messages are excluded
@@ -64,9 +64,9 @@ Patient-linked coordination data is limited to the minimum needed to move a pati
 | Build | Vite 6 |
 | Database | Supabase Postgres (MySQL remains supported for local development) |
 | Storage | Supabase Storage (S3 protocol) in production; private local disk in development |
-| Hosting | Vercel (Laravel via `vercel-php` serverless function) + Railway (Reverb + scheduler) |
+| Hosting | Vercel (Laravel via `vercel-php` serverless function) |
 | Auth | Session-based web login + Sanctum personal access tokens for API |
-| Realtime | Laravel Reverb 1, Laravel Echo, pusher-js |
+| Realtime | Supabase Realtime Broadcast via `supabase-js` |
 | Tests | PHPUnit 11 / Laravel test runner |
 
 ## Getting started
@@ -108,17 +108,13 @@ The project runs on Laragon's bundled Apache, PHP, and MySQL with no code change
    npm run build
    ```
 
-5. Start Reverb in a separate terminal so chat and unread badges work in real time:
+5. Open **http://emr.test** and sign in with a demo account, for example `hospitaladmin@bhn.test` / `Password@123`.
 
-   ```bash
-   php artisan reverb:start --host=0.0.0.0 --port=8080
-   ```
-
-6. Open **http://emr.test** and sign in with a demo account, for example `hospitaladmin@bhn.test` / `Password@123`.
+Chat and live unread badges use Supabase Realtime; no extra local server is needed once `BROADCAST_CONNECTION=supabase` and the `SUPABASE_*` keys are set.
 
 > In PowerShell, use `npm.cmd` if script execution is disabled (`npm.cmd run build`, `npm.cmd install`).
 
-`.env.example` is preconfigured for the production Supabase/Railway setup. For the Laragon workflow above, override the database block locally:
+`.env.example` is preconfigured for the production Supabase/Vercel setup. For the Laragon workflow above, override the database block locally:
 
 ```dotenv
 APP_NAME=BHN
@@ -136,23 +132,18 @@ SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 CACHE_STORE=database
 
-BROADCAST_CONNECTION=reverb
-REVERB_APP_ID=local-app
-REVERB_APP_KEY=local-key
-REVERB_APP_SECRET=local-secret
-REVERB_HOST=emr.test
-REVERB_PORT=8080
-REVERB_SCHEME=http
-REVERB_CLIENT_HOST=emr.test
-REVERB_CLIENT_PORT=8080
-REVERB_CLIENT_SCHEME=http
+BROADCAST_CONNECTION=log
+# For live chat locally, set BROADCAST_CONNECTION=supabase and these values:
+# SUPABASE_URL=https://<project-ref>.supabase.co
+# SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+# SUPABASE_SECRET_KEY=<service-role key, server only>
 
 BHN_DEMO_PASSWORD=Password@123
 BHN_SHOW_DEMO_ACCOUNTS=false
 SANCTUM_EXPIRATION_MINUTES=480
 ```
 
-> Generate unique Reverb credentials per deployment and keep `REVERB_APP_SECRET` server-side. Reverb settings are shared with the browser at runtime through Inertia, so changing them no longer requires rebuilding assets.
+> Keep `SUPABASE_SECRET_KEY` server-side — the browser only receives the publishable key and an unguessable per-user Realtime topic.
 
 Create the schema and demo data:
 
@@ -165,7 +156,6 @@ For local development:
 
 ```bash
 php artisan serve          # or: php -S 127.0.0.1:8010 -t public
-php artisan reverb:start --host=0.0.0.0 --port=8080
 npm run dev
 ```
 
@@ -173,22 +163,21 @@ The seeded environment contains Region X, Bukidnon, all 22 Bukidnon LGUs, eight 
 
 > **Demo data notice.** Facility names, profiles, contact details, bed layouts, and referral records are representative demonstration data for the Bukidnon deployment. Replace them with official facility records before production use.
 
-## Vercel + Supabase + Railway deployment
+## Vercel + Supabase deployment
 
-The HTTP application runs on **Vercel** through `api/index.php` and the community `vercel-php@0.8.0` runtime; `vercel.json` serves compiled assets and routes every other request to Laravel. Long-running processes still live on **Railway** (one Docker service running Reverb and `schedule:work`), and data lives in **Supabase Postgres/Storage**.
-
-Browser Reverb settings are shared at runtime and point at the Railway HTTPS domain (`REVERB_CLIENT_HOST`, `REVERB_CLIENT_PORT=443`, `REVERB_CLIENT_SCHEME=https`), while server-side broadcasting uses `REVERB_HOST` with the same public host. Railway's Apache proxies both `/app` (WebSockets) and `/apps` (Pusher HTTP events) to Reverb.
+The HTTP application runs entirely on **Vercel** through `api/index.php` and the community `vercel-php@0.8.0` runtime; `vercel.json` serves compiled assets and routes every other request to Laravel. Data and realtime messaging live in **Supabase** (Postgres, Storage, Realtime). No other server is required.
 
 ### Vercel
 
 1. Create a Vercel project with framework preset "Other" and no build/install/output settings (the PHP runtime installs Composer dependencies itself). Keep `package.json`, `package-lock.json`, and `vite.config.js` in `.vercelignore` so Vercel does not auto-detect Vite.
 2. Build assets locally (`npm run build`) before deploying so `public/build` is uploaded.
-3. Set the production environment variables from `.env.example`, including `APP_URL=https://<your-vercel-domain>` and the `REVERB_*`, `DB_*`, and `SUPABASE_*` blocks.
+3. Set the production environment variables from `.env.example`, including `APP_URL=https://<your-vercel-domain>`, the `DB_*` and `SUPABASE_*` blocks, `BROADCAST_CONNECTION=supabase`, and `CRON_SECRET`.
 4. Deploy with `vercel --prod --yes`.
 
-### Railway (Reverb + scheduler only)
+### Chat and scheduler
 
-The Docker image and `railway.toml` are still used for the always-on Reverb and scheduler service. Set the same `DB_*`, `SUPABASE_*`, and `REVERB_*` variables there, with `REVERB_SERVER_HOST=127.0.0.1`, `REVERB_SERVER_PORT=8081`, `REVERB_HOST=127.0.0.1`, and `REVERB_PORT=8081`. Deploy with `railway up --detach`.
+- **Chat:** Laravel events still broadcast to `user.{id}` channels, but `SupabaseBroadcaster` translates them to unguessable public Realtime topics derived from `APP_KEY`. The browser receives only the publishable key and its own topic through Inertia. No Reverb server, queue worker, or WebSocket proxy is needed.
+- **Scheduler:** `vercel.json` declares a 15-minute Vercel Schedule that calls `GET /cron/expire-reservations`. The route checks `CRON_SECRET` (sent as `Authorization: Bearer <secret>`) and runs `php artisan reservations:expire`. Hobby accounts support schedules down to 15-minute intervals.
 
 ### Supabase project
 
@@ -324,7 +313,7 @@ docs/
 - Referral documents are stored privately under `referral-documents/{referral_public_id}` on the disk selected by `REFERRAL_DOCUMENTS_DISK` (`local` in development, `supabase` in production) and downloaded through an authorized controller action.
 - Audit records capture the actor, hospital context, subject, changed fields, IP address, and user agent.
 - Branding uses the Province of Bukidnon official seal (`public/images/bukidnon-seal.jpg`), with 64 px and 180 px PNG derivatives for the favicon and Apple touch icon.
-- Chat requires the Reverb server to be running (`php artisan reverb:start --host=0.0.0.0 --port=8080`). Broadcasts use `ShouldBroadcastNow`, so no queue worker is required for messaging. Open two accounts in separate browsers to exercise live delivery.
+- Chat uses Supabase Realtime Broadcast (`SupabaseBroadcaster`); broadcasts use `ShouldBroadcastNow`, so no queue worker is required. Open two accounts in separate browsers to exercise live delivery.
 - Chat edits and deletions broadcast `message.updated` / `message.deleted` to both participants. Delete events carry refreshed per-user and per-conversation unread counts so badges stay accurate without a page reload.
 - Chat policy: the UI warns users not to share patient names, medical record numbers, or other identifiable information. Direct messages are not part of the clinical record; use referral records and approved documents for patient coordination.
 - Security hardening: the demo-account panel is local-only (`BHN_SHOW_DEMO_ACCOUNTS`), API routes are limited to 120 requests/min, web mutations/exports use a 20/min limiter, chat mutations use 60/min, Sanctum tokens expire after `SANCTUM_EXPIRATION_MINUTES` (default 480), and responses include CSP, `X-Frame-Options`, `X-Content-Type-Options`, and `Referrer-Policy` headers. In production, set `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, and `SESSION_ENCRYPT=true`.

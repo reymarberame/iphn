@@ -232,8 +232,8 @@ php artisan test
 
 ## 15. Operations
 
-- Schedule `reservations:expire` every five minutes (already registered in `routes/console.php`). The production container runs `php artisan schedule:work` under Supervisor.
-- Run `php artisan reverb:start --host=0.0.0.0 --port=8080` alongside the web server for chat. Reverb credentials live in `REVERB_*`; the browser receives runtime client settings through Inertia (`REVERB_CLIENT_*`, falling back to the request host), so changing credentials no longer requires rebuilding assets. In production, Apache proxies the public HTTPS `/app` path to Reverb on `127.0.0.1:8081`.
+- `reservations:expire` is registered in `routes/console.php`. In production, a 15-minute Vercel Schedule calls the protected `GET /cron/expire-reservations` route, which verifies `CRON_SECRET` and runs the command.
+- Chat uses Supabase Realtime Broadcast through `App\Broadcasting\SupabaseBroadcaster`. Laravel events still target `user.{id}` channels; the broadcaster maps them to HMAC-derived public topics from `App\Support\RealtimeTopics`. The browser receives only `SUPABASE_PUBLISHABLE_KEY` and its own topic through Inertia. No Reverb process or queue worker is needed.
 - Run a queue worker if notifications/audits are moved off the sync driver; the current implementation uses database notifications and synchronous writes.
 - Run `php artisan storage:link` only if public assets are added; referral documents intentionally remain private.
 - `npm run build` produces `public/build`; the Docker image builds it in a Node stage and copies it into the application image.
