@@ -76,6 +76,11 @@ RUN { \
         echo 'expose_php = Off'; \
     } > /usr/local/etc/php/conf.d/bhn.ini
 
+# libpq looks for client certificates under $HOME/.postgresql. Railway's build
+# image leaves a root-owned directory there, which www-data cannot read. Give
+# every runtime process a writable home so SSL connections do not try to open it.
+ENV HOME=/var/www/html
+
 EXPOSE 8080 8081
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
