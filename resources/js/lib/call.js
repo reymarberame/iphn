@@ -1,5 +1,19 @@
 const AUDIO_ONLY = { audio: true, video: false };
 
+function normalizeSdp(sdp) {
+    if (typeof sdp !== 'string') return sdp;
+
+    // Normalize all line endings to CRLF and guarantee a trailing CRLF.
+    // Chrome's SDP parser rejects descriptions without it.
+    let normalized = sdp.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n/g, '\r\n');
+
+    if (!normalized.endsWith('\r\n')) {
+        normalized += '\r\n';
+    }
+
+    return normalized;
+}
+
 function withTerminatingNewline(description) {
     if (!description) return description;
 
@@ -7,11 +21,32 @@ function withTerminatingNewline(description) {
         ? { sdp: description }
         : { ...description };
 
-    if (typeof copy.sdp === 'string' && !/\r?\n$/.test(copy.sdp)) {
-        copy.sdp += '\r\n';
-    }
+    copy.sdp = normalizeSdp(copy.sdp);
 
     return copy;
+}
+
+// SDP is ASCII; base64 keeps line endings intact across JSON, PHP and Realtime.
+function encodeDescription(description) {
+    if (!description || typeof description.sdp !== 'string') return description;
+
+    return {
+        type: description.type,
+        sdp: btoa(description.sdp),
+    };
+}
+
+function decodeDescription(description) {
+    if (!description || typeof description.sdp !== 'string') return description;
+
+    try {
+        return {
+            type: description.type,
+            sdp: atob(description.sdp),
+        };
+    } catch (error) {
+        return description;
+    }
 }
 
 function friendlyMediaError(error) {
@@ -208,7 +243,7 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
             await connection.setLocalDescription(offer);
 
             await send(recipient.id, conversationId, callId, 'offer', {
-                sdp: connection.localDescription.toJSON(),
+                sdp: encodeDescription(connection.localDescription.toJSON()),
                 video: withVideo,
             });
         } catch (error) {
@@ -232,7 +267,7 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
             const connection = createPeer();
             localStream.getTracks().forEach((track) => connection.addTrack(track, localStream));
 
-            await connection.setRemoteDescription(withTerminatingNewline(offer));
+            await connection.setRemoteDescription(withTerminatingNewline(decodeDescription(offer)));
             await flushCandidates();
 
             const answer = await connection.createAnswer();
@@ -240,7 +275,7 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
 
             setState({ status: 'active', video: localStream.getVideoTracks().length > 0 });
             await send(peerId, conversationId, callId, 'answer', {
-                sdp: connection.localDescription.toJSON(),
+                sdp: encodeDescription(connection.localDescription.toJSON()),
                 video: localStream.getVideoTracks().length > 0,
             });
         } catch (error) {
@@ -302,7 +337,7 @@ export function createCallController({ userId, iceServers, signalUrl, onState, o
         }
 
         if (type === 'answer' && state.status === 'outgoing' && pc && payload.data?.sdp) {
-            await pc.setRemoteDescription(withTerminatingNewline(payload.data.sdp));
+            await pc.setRemoteDescription(withTerminatingNewline(decodeDescription(payload.data.sdp)));
             await flushCandidates();
             setState({ status: 'active', video: Boolean(payload.data?.video) });
             startTimer(callId);
